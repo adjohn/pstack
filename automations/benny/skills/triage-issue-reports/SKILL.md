@@ -29,6 +29,8 @@ Load the external Benny configuration supplied by the automation. If the config 
 
 ## 1. Freeze source coordinates
 
+The trigger is the report this run is processing: the payload delivered by the automation's trigger, or one report selected by a scheduled run's scan of the source channel.
+
 Before making a work list or delegating:
 
 1. Read `source_channel_id` from the trigger.

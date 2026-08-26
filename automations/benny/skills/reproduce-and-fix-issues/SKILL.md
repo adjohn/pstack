@@ -33,6 +33,8 @@ Load the external Benny configuration supplied by the automation. If the config,
 
 ## 1. Freeze source coordinates
 
+The trigger is the report this run is processing: the payload delivered by the automation's trigger, or one report selected by a scheduled run's scan of the source channel.
+
 Before making a work list or delegating:
 
 1. Require the trigger channel to equal the configured source channel.
@@ -55,7 +57,7 @@ If any check fails, post nothing. Never retry at the root or in a fallback chann
 
 ## 2. Wait for the triage contract
 
-Watch the source thread for the configured verdict budget. Stay silent while waiting.
+Watch the source thread for the configured verdict budget. Stay silent while waiting. On a scheduled run, a trusted marker already present in the thread satisfies the wait; when the budget expires without one, end the run cleanly and let a later run pick the report up.
 
 Accept a verdict only when:
 
@@ -119,7 +121,7 @@ Use the configured plain Unicode status strings. Keep status text short:
 - Draft pull request opened
 - Fix did not land
 
-Prefer configured Cursor Slack actions. Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.
+Prefer the configured Slack MCP tools. Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.
 
 If no operations channel is configured, keep detailed status in the automation run output. Do not substitute a source-channel root message.
 

@@ -330,6 +330,10 @@ function parseComment(value: unknown): T.ReviewComment {
     createdAt: string(object.createdAt, "review comment.createdAt"),
   };
 }
+// isBugbot and passKey intentionally match Cursor's Bugbot GitHub app output
+// (author "cursor", CURSOR_AUTOMATION_ID pass keys). Bugbot posts on GitHub PRs
+// regardless of editor, so this detection is retained in the Claude Code port;
+// it is not a Cursor leftover to sweep.
 function isBugbot(comment: T.ReviewComment | null): boolean {
   if (comment === null) return false;
   const author = (comment.authorLogin ?? "").toLowerCase();

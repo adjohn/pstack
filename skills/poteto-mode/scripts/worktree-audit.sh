@@ -14,17 +14,26 @@ cd "$repo" || exit 1
 # Main worktree is the first entry; everything else is a candidate.
 main_wt=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
 
-# origin/main drives the merge check. Best-effort; stale is fine for a first pass.
-git fetch origin main --quiet 2>/dev/null || echo "warn: could not fetch origin/main; merged column may be stale" >&2
+# The remote default branch drives the merge check. Best-effort; stale is fine
+# for a first pass.
+def=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
+def=${def:-main}
+git fetch origin "$def" --quiet 2>/dev/null || echo "warn: could not fetch origin/$def; merged column may be stale" >&2
 
 # PR state by branch, fetched once. Empty if gh is unavailable.
 prs=$(mktemp)
 gh pr list --author "@me" --state all --limit 1000 \
 	--json number,state,headRefName 2>/dev/null > "$prs" || echo "[]" > "$prs"
 
-# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.
-slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="$HOME/.cursor/projects/$slug/agent-transcripts"
+# Transcripts dir: ~/.claude/projects/<slug>, one .jsonl per session. The slug is
+# the resolved path with every non-alphanumeric character replaced by "-".
+slugify() { printf '%s' "$1" | sed 's#[^A-Za-z0-9]#-#g'; }
+mtime() { perl -e 'my @s = stat($ARGV[0]); print $s[9] // 0' "$1" 2>/dev/null || echo 0; }
+fmt_date() { perl -e 'my @t = localtime($ARGV[0]); printf "%04d-%02d-%02d", $t[5]+1900, $t[4]+1, $t[3]' "$1"; }
+main_wt_real=$(cd "$main_wt" && pwd -P)
+slug=$(slugify "$main_wt_real")
+transcripts="$HOME/.claude/projects/$slug"
+[ -d "$transcripts" ] || echo "warn: no transcripts dir at $transcripts; LAST_CHAT column may silently degrade" >&2
 now=$(date +%s)
 
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"
@@ -39,7 +48,7 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 
 	# Squash-merged branches are not ancestors of main, so PR state is the
 	# real signal; merge-base only catches fast-forward/rebase merges.
-	git merge-base --is-ancestor "$head" origin/main 2>/dev/null && merged=YES || merged=no
+	git merge-base --is-ancestor "$head" "origin/$def" 2>/dev/null && merged=YES || merged=no
 
 	# Distinguish real WIP (tracked edits) from disposable untracked scratch.
 	porcelain=$(git -C "$wt" status --porcelain 2>/dev/null)
@@ -64,11 +73,28 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
 	last="-"; last_ts=0
 	if [ -d "$transcripts" ]; then
-		f=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null \
-			| xargs stat -f '%m %N' 2>/dev/null | sort -rn | head -1)
-		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
-			last=$(date -r "$last_ts" '+%Y-%m-%d' 2>/dev/null); fi
+		if command -v rg >/dev/null 2>&1; then
+			files=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null)
+		else
+			files=$(grep -rl -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null)
+		fi
+		for f in $files; do
+			ts=$(mtime "$f")
+			[ "$ts" -gt "$last_ts" ] && last_ts=$ts
+		done
 	fi
+	# A session launched with cwd inside the worktree writes its transcript under
+	# the worktree's own slug dir, not the main repo's. Check that too.
+	wslug=$(slugify "$(cd "$wt" && pwd -P)")
+	wdir="$HOME/.claude/projects/$wslug"
+	if [ -d "$wdir" ]; then
+		for f in "$wdir"/*.jsonl; do
+			[ -e "$f" ] || continue
+			ts=$(mtime "$f")
+			[ "$ts" -gt "$last_ts" ] && last_ts=$ts
+		done
+	fi
+	[ "$last_ts" -gt 0 ] && last=$(fmt_date "$last_ts")
 	recent=$([ "$last_ts" -gt 0 ] 2>/dev/null && [ $(( (now - last_ts) / 86400 )) -le 4 ] && echo yes || echo no)
 
 	case "$dirty" in wip:*) bucket=hold-wip ;; *)
