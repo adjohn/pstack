@@ -1,0 +1,14 @@
+{
+	"name": "pstack",
+	"owner": {
+		"name": "Lauren Tan"
+	},
+	"plugins": [
+		{
+			"name": "pstack",
+			"source": "./",
+			"description": "if you want to go fast, go deep first. rigorous agent workflows you can parallelize with confidence. Ported from cursor/plugins."
+		}
+	],
+	"description": "pstack: rigorous agent workflows for Claude Code, ported from cursor/plugins"
+}
