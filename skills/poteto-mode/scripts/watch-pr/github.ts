@@ -536,6 +536,14 @@ export class GhGitHubReader implements T.GitHubReader {
         if (!(error instanceof WatcherQueryError)) throw error;
       }
     }
+    // `gh pr checks` reports this exact wording, with empty stdout, when the
+    // branch genuinely has zero checks. Every other unusable reason (rate
+    // limit, credential error, malformed output) must still fail closed.
+    if (
+      !result.stdout.trim() &&
+      /^no checks reported on .+ branch$/.test(result.stderr.trim())
+    )
+      return { kind: "no-checks" };
     return { kind: "unusable", exitCode: result.code, stderr: result.stderr };
   }
   async checkRollupPage(
@@ -621,6 +629,7 @@ export async function resolveChecks(
   } while (after !== null);
   const fallback = nonEmpty(checks);
   if (fallback !== null) return { source: "graphql-rollup", checks: fallback };
+  if (fast.kind === "no-checks") return { source: "no-checks", checks: [] };
   const suffix =
     fast.kind === "unusable"
       ? `fast path exit=${fast.exitCode}; GraphQL rollup was empty${firstLine(fast.stderr) ? `; ${firstLine(fast.stderr)}` : ""}`

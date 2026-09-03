@@ -87,8 +87,8 @@ export type Check =
 export type FailedCheck = Extract<Check, { readonly kind: "failed" }>;
 export type PendingCheck = Extract<Check, { readonly kind: "pending" }>;
 export interface CheckRead {
-  readonly source: "gh-pr-checks" | "graphql-rollup";
-  readonly checks: NonEmpty<Check>;
+  readonly source: "gh-pr-checks" | "graphql-rollup" | "no-checks";
+  readonly checks: readonly Check[];
 }
 export interface CommitRollup {
   readonly oid: string;
@@ -115,7 +115,7 @@ export type GitHubMergeAllowed =
 export type GitHubMergeAssessment = GitHubMergeAllowed | GitHubMergeRefusal;
 interface CiBase {
   readonly source: CheckRead["source"];
-  readonly all: NonEmpty<Check>;
+  readonly all: readonly Check[];
   readonly hadPreviousPassingCi: boolean;
 }
 export type CiFailing = CiBase & {
@@ -370,6 +370,7 @@ export type QueueTerminalVerdict =
   | TimeoutVerdict;
 export type ChecksFastPath =
   | { readonly kind: "checks"; readonly checks: readonly Check[] }
+  | { readonly kind: "no-checks" }
   | {
       readonly kind: "unusable";
       readonly exitCode: number;
