@@ -76,6 +76,13 @@ describe("checks fallback chain", () => {
     );
     expect(reader.calls).toEqual(["checksFastPath", "checkRollupPage:null"]);
   });
+
+  it("reports a PR with confirmed zero checks as clean rather than unavailable", async () => {
+    const reader = fakeReader({ fastPath: { kind: "no-checks" } });
+    const read = await resolveChecks(reader, context);
+    expect(read).toEqual({ source: "no-checks", checks: [] });
+    expect(reader.calls).toEqual(["checksFastPath", "checkRollupPage:null"]);
+  });
 });
 
 describe("rollup node mapping", () => {
