@@ -58,6 +58,8 @@ Apps change and feature maps rot. When yours drifts, run:
 
 The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) works from a worktree, rebases the work into small ordered commits, cleans the diff, unslops the prose, and returns the PR link. Five narrow PRs beat one fat one, and stacked follow-ups beat a growing branch.
 
+That preference has a number behind it. The [PR budget](../../skills/poteto-mode/references/pr-budget.md) is 20 files and 800 added lines per PR, with lockfiles, snapshots, and generated files free. The mode applies it when it scopes a delegate or a plan, so the split happens before the code exists. A plugin hook prints the running count after every commit and refuses an over-budget `gh pr create` or `gt submit`. Mark generated files `linguist-generated` in `.gitattributes` and the checker stops counting them. Tune the numbers with `PSTACK_PR_MAX_FILES` and `PSTACK_PR_MAX_LINES` in the `env` block of your `~/.claude/settings.json`, or a repo's `.claude/settings.json`. A diff that cannot split, such as a regenerated file, passes with `PSTACK_PR_SIZE_OK=1` in front of the command and a reason in the PR's Tradeoffs section.
+
 ## Drive the PR to merge-ready with Babysit
 
 An open PR starts collecting blockers immediately. Checks fail, reviewers comment, trunk moves. Hand that churn to the [Babysit playbook](../../skills/poteto-mode/playbooks/babysit.md):
