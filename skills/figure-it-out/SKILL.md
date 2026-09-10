@@ -26,7 +26,7 @@ Present the framing and tradeoffs before committing to a long run. Reversible wo
 
 ## Phase B: Design the workflow
 
-Decompose into atomic, independently-landable units. Sequence riskiest-unknown-first so option value stays high. Scaffold and verification come before features (the **foundational-thinking** principle skill).
+Decompose into atomic, independently-landable units, each one PR under the budget in the **poteto-mode** skill's `references/pr-budget.md`. Sequence riskiest-unknown-first so option value stays high. Scaffold and verification come before features (the **foundational-thinking** principle skill).
 
 - Build the verification harness before the work, with the baseline captured from the pre-change state, so the check reads as "old value vs new value".
 - For one-way-door design decisions, run the **architect** skill (it runs **arena**) with diverse, isolated, opinionated candidates and a read-only judge on a different model family. Skip it for mechanical work whose shape is already concrete. A second arena over a settled design is over-engineering (the **laziness-protocol** principle skill).

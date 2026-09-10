@@ -19,6 +19,7 @@ Remaining triggers:
 - Parallel fan-out → the **swarm** skill for coverage matrices, races, gauntlets, and exploration partitions. Use **arena** for design or code bakeoffs with base selection and grafting.
 - Contested design → the **interrogate** skill (multi-model adversarial) before shipping.
 - Nontrivial multi-step → write the throughput checkpoint (Feature step 3).
+- Scoping a delegate's brief, a plan's PR list, or a stack → the PR budget in `references/pr-budget.md`. Over budget means split at scoping time, never after the diff exists. The plugin hook denies an over-budget `gh pr create` or `gt submit`.
 - Any prose surface → the **unslop** skill. Your reply is a prose surface; write it per **Writing the reply**. Agent-facing prose also follows the **skill-creator** skill if installed (from anthropics/skills); otherwise author the SKILL.md directly.
 - Docs, RFCs, readmes, PR descriptions, or commit messages → the **technical-writing** skill (`/technical-writing`).
 - Before commit → Claude Code's built-in `/simplify`.
