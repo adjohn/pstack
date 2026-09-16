@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import process from "node:process";
-import { budgetFromEnv, measure, report, resolveBase, summary, verdict } from "./check-pr-size.mjs";
+import { budgetFromEnv, isMainModule, measure, report, resolveBase, summary, verdict } from "./check-pr-size.mjs";
 
 const ENV_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
 const GT_COMMIT_VERBS = new Set(["create", "modify", "absorb", "c", "m"]);
@@ -81,6 +81,7 @@ export function check(cwd, base) {
 	}
 }
 
+/** @param {(cwd: string, base?: string) => (ReturnType<typeof check> | null | undefined)} [run] */
 export function decide(input, run = check) {
 	const raw = input?.tool_input?.command;
 	if (typeof raw !== "string") return null;
@@ -126,7 +127,7 @@ export function decide(input, run = check) {
 	};
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (isMainModule(process.argv[1], import.meta.url)) {
 	let raw = "";
 	process.stdin.setEncoding("utf8");
 	process.stdin.on("data", (chunk) => (raw += chunk));

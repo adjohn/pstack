@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "allowJs": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmit": true,
@@ -9,5 +10,5 @@
     "target": "esnext",
     "types": ["bun-types"]
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "../*.ts"]
 }
