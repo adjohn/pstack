@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import process from "node:process";
+import { budgetFromEnv } from "./check-pr-size.mjs";
 
 const RULE =
 	"Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.";
@@ -107,6 +108,7 @@ const prSections = programIndex === -1 || closeIndex === -1 ? [] : sections.slic
 if (prSections.length === 0) fail(1, "no PR sections between Program checklist and Close the program");
 
 const report = [];
+const { maxFiles } = budgetFromEnv();
 for (const pr of prSections) {
 	const heads = [];
 	for (const l of pr.body) {
@@ -125,6 +127,10 @@ for (const pr of prSections) {
 
 	const depends = block("Depends on.");
 	if (depends && depends.rest === "") fail(depends.n, `${pr.title}: Depends on names nothing`);
+	const files = block("Files.");
+	if (files && boxes(files.lines).length > maxFiles) {
+		fail(files.n, `${pr.title}: Files lists ${boxes(files.lines).length} paths, PR budget is ${maxFiles}; split the section (references/pr-budget.md)`);
+	}
 	for (const name of ["Files.", "Build.", "You see.", "Verify, unit.", "Merge."]) {
 		const b = block(name);
 		if (b && boxes(b.lines).length === 0) fail(b.n, `${pr.title}: ${name} has no box`);
