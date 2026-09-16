@@ -65,13 +65,12 @@ export async function readSnapshot(args: {
     return { kind: "closed", context: args.context, facts };
   const threads = await args.reader.reviewThreads(args.context);
   const checks = await resolveChecks(args.reader, args.context);
+  const allChecks: readonly T.Check[] = checks.checks;
   const failed = nonEmpty(
-    checks.checks.filter(
-      (check): check is T.FailedCheck => check.kind === "failed"
-    )
+    allChecks.filter((check): check is T.FailedCheck => check.kind === "failed")
   );
   const pending = nonEmpty(
-    checks.checks.filter(
+    allChecks.filter(
       (check): check is T.PendingCheck => check.kind === "pending"
     )
   );
@@ -80,7 +79,7 @@ export async function readSnapshot(args: {
     ci = {
       kind: "ci-pending",
       source: checks.source,
-      all: checks.checks,
+      all: allChecks,
       failed: [],
       pending,
       hadPreviousPassingCi: false,
@@ -89,7 +88,7 @@ export async function readSnapshot(args: {
     const merge = await mergeAssessment(args.reader, facts);
     const base = {
       source: checks.source,
-      all: checks.checks,
+      all: allChecks,
       hadPreviousPassingCi: merge.hadPreviousPassingCi,
     };
     if (failed !== null)
@@ -125,7 +124,7 @@ export async function readSnapshot(args: {
     facts,
     threads,
     ci,
-    reviewAutomationRunning: checks.checks.some(
+    reviewAutomationRunning: allChecks.some(
       (check) =>
         check.kind === "pending" &&
         AUTOMATION_TOKENS.some((token) =>

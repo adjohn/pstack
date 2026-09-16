@@ -86,10 +86,12 @@ export type Check =
     });
 export type FailedCheck = Extract<Check, { readonly kind: "failed" }>;
 export type PendingCheck = Extract<Check, { readonly kind: "pending" }>;
-export interface CheckRead {
-  readonly source: "gh-pr-checks" | "graphql-rollup" | "no-checks";
-  readonly checks: readonly Check[];
-}
+export type CheckRead =
+  | { readonly source: "no-checks"; readonly checks: readonly [] }
+  | {
+      readonly source: "gh-pr-checks" | "graphql-rollup";
+      readonly checks: NonEmpty<Check>;
+    };
 export interface CommitRollup {
   readonly oid: string;
   readonly state: RollupState;
