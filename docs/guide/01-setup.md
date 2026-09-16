@@ -28,7 +28,7 @@ Run:
 /setup-pstack
 ```
 
-[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you have access to, shows you each role (code delegates, judgment, the review panels), and asks what you want. Answer the questions. It writes `~/.claude/pstack-models.md`, a small config file every pstack skill reads, and adds the line `@~/.claude/pstack-models.md` to `~/.claude/CLAUDE.md` so the file is always loaded.
+[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you have access to, asks for a reasoning budget, shows you each role (code delegates, judgment, the review panels), and asks what you want. Answer the questions. It writes `~/.claude/pstack-models.md`, a small config file every pstack skill reads, and adds the line `@~/.claude/pstack-models.md` to `~/.claude/CLAUDE.md` so the file is always loaded.
 
 You only override what you care about. A role with no line in the file keeps the skill's default. To restore a default later, delete that role's line, or just run `/setup-pstack` again.
 

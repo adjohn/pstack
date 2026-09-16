@@ -31,8 +31,8 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 
 ### Arm the program
 
-- [ ] State the protocol and this plan to the operator, then stop. Start execution only on her explicit go.
-- [ ] On her go, write the pinned goal file, `GOAL.md` next to this plan, with this exact text. "<The plan path, the PR ids in order, the verification rule, who merges, and the done condition.>"
+- [ ] State the protocol and this plan to the operator, then stop. Start execution only on the operator's explicit go.
+- [ ] On the operator's go, write the pinned goal file, `GOAL.md` next to this plan, with this exact text. "<The plan path, the PR ids in order, the verification rule, who merges, and the done condition.>"
 - [ ] Read these at program start. Re-read them at every tick. The installed plugin is the canonical copy, never a copy inside a work worktree.
   - [ ] `cat ${CLAUDE_PLUGIN_ROOT}/skills/poteto-mode/playbooks/<execution playbook>.md`
   - [ ] `cat ${CLAUDE_PLUGIN_ROOT}/skills/swarm/SKILL.md`
@@ -40,7 +40,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
   - [ ] `cat ${CLAUDE_PLUGIN_ROOT}/skills/poteto-mode/playbooks/opening-a-pr.md`
   - [ ] `cat ${CLAUDE_PLUGIN_ROOT}/skills/<each other leaf skill the program uses>`
 - [ ] Arm the 30-minute audit tick. In a local session, a real terminal `/loop`. In a cloud root, a cloud-sleeper wake chain. Never leave the cadence to memory.
-- [ ] Use this tick prompt, verbatim. "Re-read the execution playbook from the installed pstack plugin and the pinned goal file. Audit the operation against both and fix drift in this tick. Probe every active lane and judge progress by side effects only. Stand down a stuck lane and dispatch its replacement now. Then send the operator a status message, whether or not anything changed, with the queue table of PR, owner, state, and head SHA, the verdicts since the last tick, what merged, open operator gates, and blockers."
+- [ ] Use this tick prompt, verbatim. "Re-read the execution playbook from the installed pstack plugin and the pinned goal file. Audit the operation against both and fix drift in this tick. Probe every active lane and judge progress by side effects only. Stand down a stuck lane and dispatch its replacement now. Then post a status message to the operator in chat, whether or not anything changed, with the queue table of PR, owner, state, and head SHA, the verdicts since the last tick, what merged, open operator gates, and blockers."
 - [ ] On the operator's hold or stand-down, send every owner a zero-writes order at once.
 
 ### Spawn owners

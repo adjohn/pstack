@@ -21,6 +21,7 @@ pstack was written by [Lauren Tan](https://x.com/poteto) as a Cursor IDE plugin.
 |---|---|
 | model config at `~/.cursor/rules/pstack-models.mdc` (alwaysApply rule) | `~/.claude/pstack-models.md`, always loaded via `@~/.claude/pstack-models.md` in `~/.claude/CLAUDE.md` |
 | multi-vendor model slugs (sol, grok, fable, opus) | claude tiers: `fable`, `opus`, `sonnet`, `haiku` |
+| `/setup-pstack` budget rewrites the effort suffix of every slug | budget sets `effortLevel` in `~/.claude/settings.json` |
 | `AskQuestion` tool; `Task` subagent launcher | `AskUserQuestion` tool; `Agent` subagent launcher |
 | transcripts under `~/.cursor/projects/<slug>/agent-transcripts/` | `~/.claude/projects/<slug>/<session-uuid>.jsonl` |
 | `cursor-team-kit`'s `/deslop`, `control-cli`/`control-ui` | built-in `/simplify`; the project's `verify-<app>` skill |
@@ -58,12 +59,12 @@ the first command registers this directory as a plugin marketplace (the path is 
 
 two steps:
 
-1. run [`/setup-pstack`](./skills/setup-pstack/SKILL.md) and choose which models you want.
+1. run [`/setup-pstack`](./skills/setup-pstack/SKILL.md), pick a reasoning budget, and choose which models you want.
 2. use [`/poteto-mode`](./skills/poteto-mode/SKILL.md) whenever you're doing anything that requires rigor.
 
 new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs.
 
-that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box the mode splits work by model strength: precisely-specified code, prose, and judgment go to fable, while fast mechanical code goes to haiku. the default panel is fable / sonnet / haiku / opus. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) changes any of it.
+that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box the mode splits work by model strength: code delegates (feature, refactoring, bug fix, perf, hillclimb) go to haiku, while the hardest changes, prose, and judgment go to fable. the default panel is fable / sonnet / haiku / opus. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) changes any of it.
 
 ## usage
 

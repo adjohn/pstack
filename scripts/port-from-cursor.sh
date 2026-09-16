@@ -101,7 +101,21 @@ my @rules = (
   ["report whether the chat is pinned or ongoing", "report whether the chat is still ongoing"],
   ["A pinned chat spawns", "A long-running chat spawns"],
   ["never hit the sidebar", "never hit the session list"],
+
+  # multi-phase plan checklist: /goal -> GOAL.md, trunk reads -> installed plugin
+  ["On the operator'"'"'s go, arm a `/goal` with this exact text.", "On the operator'"'"'s go, write the pinned goal file, `GOAL.md` next to this plan, with this exact text."],
+  ["- [ ] Read these from trunk at program start. Re-read them at every tick.", "- [ ] Read these at program start. Re-read them at every tick. The installed plugin is the canonical copy, never a copy inside a work worktree."],
+  ["`git show origin/main:<control skill path>`", "`git show origin/main:<verification skill path>`"],
+  ["Re-read the execution playbook from trunk and the armed /goal.", "Re-read the execution playbook from the installed pstack plugin and the pinned goal file."],
+
+  # setup-pstack and its guide: Cursor rule -> always-loaded memory file
+  ["writes an always-applied rule", "writes an always-loaded memory file"],
+  ["the rule shape shown in step 5", "the file shape shown in step 5"],
+  ["when the rule records one", "when the file records one"],
+  ["with `alwaysApply: true`, a", "with a"],
+  ["a small rule every pstack skill reads.", "a small config file every pstack skill reads, and adds the line `@~/.claude/pstack-models.md` to `~/.claude/CLAUDE.md` so the file is always loaded."],
 );
 for my $r (@rules) { my ($from, $to) = @$r; s/\Q$from\E/$to/g; }
 s{re-read this playbook from trunk with `git show origin/main:pstack/([^`]+)`}{re-read this playbook from the installed pstack plugin (`cat \${CLAUDE_PLUGIN_ROOT}/$1`; the plugin install is the canonical copy, never a copy inside a work worktree)}g;
+s{`git show origin/main:pstack/([^`]+)`}{`cat \${CLAUDE_PLUGIN_ROOT}/$1`}g;
 '
