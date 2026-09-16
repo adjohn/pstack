@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { DEFAULTS } from "./check-pr-size.mjs";
-import { decide } from "./pr-size-gate.mjs";
+import { baseOf, decide, shellCommands } from "./pr-size-gate.mjs";
 import { commit, lines, repo } from "./pr-size-fixture.ts";
 
-const over = () => ({ over: true, summary: "files 12/10", report: "OVER BUDGET" });
-const within = () => ({ over: false, summary: "files 2/10", report: "within budget" });
+const over = () => ({ kind: "measured", over: true, summary: "files 12/10", report: "OVER BUDGET" });
+const within = () => ({ kind: "measured", over: false, summary: "files 2/10", report: "within budget" });
 const pre = (command: string) => ({ cwd: "/repo", hook_event_name: "PreToolUse", tool_input: { command } });
 const post = (command: string) => ({ cwd: "/repo", hook_event_name: "PostToolUse", tool_input: { command } });
 const gate = path.join(import.meta.dir, "pr-size-gate.sh");
@@ -83,5 +83,61 @@ describe("pr-size-gate", () => {
 		}
 		expect(runGate({ cwd, hook_event_name: "PreToolUse", tool_input: { command: "ls" } })).toBe("");
 		expect(runGate({ cwd, hook_event_name: "PostToolUse", tool_input: { command: "gh pr create --base main" } })).toBe("");
+	});
+
+	test("shellCommands tokenizes quotes and separators, and strips leading env assignments", () => {
+		const commands = shellCommands(`FOO=1 git add . && gh pr create --title "a && b" -B 'stack/2'`);
+		expect(commands).toEqual([
+			["git", "add", "."],
+			["gh", "pr", "create", "--title", "a && b", "-B", "stack/2"],
+		]);
+		expect(baseOf(commands[1])).toBe("stack/2");
+	});
+
+	test("resolves --base from tokens, not from a substring inside a quoted title", () => {
+		let seen: string | undefined;
+		decide(pre('gh pr create --title "notes -B nothing" --base main'), (_cwd, base) => ((seen = base), within()));
+		expect(seen).toBe("main");
+	});
+
+	test("denies and names the attempted base when it cannot be measured", () => {
+		const out = decide(pre("gh pr create --base mian"), () => ({ kind: "unmeasurable", reason: "bad base" }));
+		expect(out?.hookSpecificOutput.permissionDecision).toBe("deny");
+		expect(out?.hookSpecificOutput.permissionDecisionReason).toContain("mian");
+	});
+
+	test("allows when no base can be resolved at all", () => {
+		expect(decide(pre("gh pr create"), () => ({ kind: "no-base" }))).toBeNull();
+	});
+
+	test("recognizes gt and git commit variants for the running count, not push or submit", () => {
+		const commitCmds = [
+			"gt create -am x",
+			"gt modify -a",
+			"gt absorb",
+			"git -C /tmp commit -m x",
+			"git -c user.name=x commit -m x",
+			"git --no-verify commit -m x",
+			"git add . && git commit -m x",
+		];
+		for (const cmd of commitCmds) {
+			const out = decide(post(cmd), over);
+			expect(out?.hookSpecificOutput.hookEventName).toBe("PostToolUse");
+		}
+		expect(decide(post("git push"), over)).toBeNull();
+		expect(decide(post("gt submit"), over)).toBeNull();
+	});
+
+	test("shell gate denies a PreToolUse open when node is missing from PATH, unless overridden", () => {
+		const bins = execFileSync("sh", ["-c", "command -v sh cat grep printf dirname"], { encoding: "utf8" }).trim().split("\n");
+		const dir = mkdtempSync(path.join(tmpdir(), "pr-size-nopath-"));
+		for (const bin of bins) symlinkSync(bin, path.join(dir, path.basename(bin)));
+		const runWithout = (input: object) => execFileSync("sh", [gate], { input: JSON.stringify(input), encoding: "utf8", env: { PATH: dir } });
+		const denied = runWithout({ cwd: "/repo", hook_event_name: "PreToolUse", tool_input: { command: "gh pr create --base main" } });
+		const parsed = JSON.parse(denied);
+		expect(parsed.hookSpecificOutput.permissionDecision).toBe("deny");
+		expect(parsed.hookSpecificOutput.permissionDecisionReason).toContain("node");
+		expect(runWithout({ cwd: "/repo", hook_event_name: "PreToolUse", tool_input: { command: "PSTACK_PR_SIZE_OK=1 gh pr create --base main" } })).toBe("");
+		expect(runWithout({ cwd: "/repo", hook_event_name: "PostToolUse", tool_input: { command: "git commit -m x" } })).toBe("");
 	});
 });
