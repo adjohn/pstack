@@ -24,4 +24,10 @@ export function commit(cwd: string, files: Record<string, string>) {
 	git(cwd, ["commit", "-qm", "change"]);
 }
 
+export function commitOnMain(cwd: string, files: Record<string, string>) {
+	git(cwd, ["checkout", "-q", "main"]);
+	commit(cwd, files);
+	git(cwd, ["checkout", "-qB", "feature", "main"]);
+}
+
 export const lines = (n: number) => Array.from({ length: n }, (_, i) => `line ${i}`).join("\n") + "\n";

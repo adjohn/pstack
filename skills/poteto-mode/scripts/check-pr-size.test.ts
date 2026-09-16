@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { appendFileSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { DEFAULTS, git, main, measure, resolveBase } from "./check-pr-size.mjs";
-import { commit, lines, repo } from "./pr-size-fixture.ts";
+import { commit, commitOnMain, lines, repo } from "./pr-size-fixture.ts";
 
 describe("check-pr-size", () => {
 	test("counts added lines and files against main, deletions free", () => {
@@ -57,6 +59,61 @@ describe("check-pr-size", () => {
 		git(cwd, ["symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/feature"]);
 		expect(resolveBase(cwd)).toBe("origin/feature");
 		expect(resolveBase(cwd, "explicit")).toBe("explicit");
+	});
+
+	test("runs as main through a path containing '#' and a space", () => {
+		const cwd = repo();
+		const dir = mkdtempSync(path.join(tmpdir(), "pr-size-"));
+		const special = path.join(dir, "dir #1 x");
+		mkdirSync(special);
+		const dest = path.join(special, "check-pr-size.mjs");
+		copyFileSync(path.join(import.meta.dir, "check-pr-size.mjs"), dest);
+		const out = execFileSync("node", [dest, "--base", "main"], { cwd, encoding: "utf8" });
+		expect(out).toContain("within budget");
+	});
+
+	test("runs as main through a symlink to the real file", () => {
+		const cwd = repo();
+		const dir = mkdtempSync(path.join(tmpdir(), "pr-size-link-"));
+		const link = path.join(dir, "check-pr-size-link.mjs");
+		symlinkSync(path.join(import.meta.dir, "check-pr-size.mjs"), link);
+		const out = execFileSync("node", [link, "--base", "main"], { cwd, encoding: "utf8" });
+		expect(out).toContain("within budget");
+	});
+
+	test("a rename out of vendor/ is measured under its new path", () => {
+		const cwd = repo();
+		commitOnMain(cwd, { "vendor/old.js": lines(10) });
+		mkdirSync(path.join(cwd, "src"), { recursive: true });
+		git(cwd, ["mv", "vendor/old.js", "src/new.js"]);
+		appendFileSync(path.join(cwd, "src/new.js"), "line 10\n");
+		git(cwd, ["add", "-A"]);
+		git(cwd, ["commit", "-qm", "rename out of vendor"]);
+		const m = measure(cwd, "main");
+		expect(m.files).toBe(1);
+		expect(m.lines).toBe(1);
+		expect(m.free).toBe(0);
+	});
+
+	test("a renamed generated file keeps its exemption", () => {
+		const cwd = repo();
+		commitOnMain(cwd, { ".gitattributes": "gen/** linguist-generated\n", "gen/a.ts": lines(5) });
+		git(cwd, ["mv", "gen/a.ts", "gen/b.ts"]);
+		appendFileSync(path.join(cwd, "gen/b.ts"), "line 5\n");
+		git(cwd, ["add", "-A"]);
+		git(cwd, ["commit", "-qm", "rename generated file"]);
+		const m = measure(cwd, "main");
+		expect(m.files).toBe(0);
+		expect(m.free).toBe(1);
+	});
+
+	test("check-attr parses a path containing ': '", () => {
+		const cwd = repo();
+		commitOnMain(cwd, { ".gitattributes": "notes/** linguist-generated\n" });
+		commit(cwd, { "notes/draft: v2.md": lines(5) });
+		const m = measure(cwd, "main");
+		expect(m.files).toBe(0);
+		expect(m.free).toBe(1);
 	});
 
 	test("reference and guide state the script's defaults", () => {
