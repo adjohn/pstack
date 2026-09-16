@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import process from "node:process";
-import { budgetFromEnv, measure, report, resolveBase, summary, verdict } from "./check-pr-size.mjs";
+import { budgetFromEnv, isMainModule, measure, report, resolveBase, summary, verdict } from "./check-pr-size.mjs";
 
 const OPENS_PR = /\bgh[ \t\n\r]+pr[ \t\n\r]+create\b|\bgt[ \t\n\r]+(submit|ss)\b/;
 const COMMITS = /\bgit[ \t\n\r]+commit\b/;
@@ -47,7 +47,7 @@ export function decide(input, run = check) {
 	};
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (isMainModule(process.argv[1], import.meta.url)) {
 	let raw = "";
 	process.stdin.setEncoding("utf8");
 	process.stdin.on("data", (chunk) => (raw += chunk));

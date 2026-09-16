@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
+import { copyFileSync, mkdirSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { DEFAULTS } from "./check-pr-size.mjs";
 import { decide } from "./pr-size-gate.mjs";
@@ -53,6 +55,19 @@ describe("pr-size-gate", () => {
 			expect(out?.hookSpecificOutput.hookEventName).toBe("PostToolUse");
 			expect(out?.hookSpecificOutput.additionalContext).toContain("files 12/10");
 		}
+	});
+
+	test("runs as main through a path containing '#' and a space", () => {
+		const cwd = repo();
+		commit(cwd, { "big.ts": lines(DEFAULTS.maxLines + 1) });
+		const dir = mkdtempSync(path.join(tmpdir(), "pr-size-gate-"));
+		const special = path.join(dir, "dir #1 x");
+		mkdirSync(special);
+		copyFileSync(path.join(import.meta.dir, "pr-size-gate.mjs"), path.join(special, "pr-size-gate.mjs"));
+		copyFileSync(path.join(import.meta.dir, "check-pr-size.mjs"), path.join(special, "check-pr-size.mjs"));
+		const input = JSON.stringify({ cwd, hook_event_name: "PreToolUse", tool_input: { command: "gh pr create --base main" } });
+		const out = execFileSync("node", [path.join(special, "pr-size-gate.mjs")], { input, encoding: "utf8" });
+		expect(JSON.parse(out).hookSpecificOutput.permissionDecision).toBe("deny");
 	});
 
 	test("shell gate denies an over-budget open, reports after commit, and stays silent otherwise", () => {
