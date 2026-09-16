@@ -1,7 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { type CliRuntime, main, parseArgs } from "./cli.ts";
 import { fakeReader, passingCheck } from "./fakes.test-helper.ts";
-import { renderJson, renderPretty } from "./render.ts";
+import { readSnapshot } from "./policy.ts";
+import { renderJson, renderPretty, renderStatusTable } from "./render.ts";
 import type { GitHubReader, WatcherVerdict } from "./types.ts";
 import { parsePrNumber } from "./types.ts";
 
@@ -150,6 +151,28 @@ describe("rendering", () => {
     expect(rendered).toContain(
       "| [#1](https://github.com/owner/repo/pull/1) | \u2014 | \u2014 | ✅ merged |"
     );
+  });
+
+  it("marks a no-checks read distinctly from a passed suite in the CI column", async () => {
+    const noChecks = await readSnapshot({
+      reader: fakeReader({ fastPath: { kind: "no-checks" } }),
+      context,
+      pendingHistory: "include",
+      allowDraft: false,
+    });
+    expect(renderStatusTable([noChecks])).toContain("➖ no checks");
+
+    const cleanChecks = await readSnapshot({
+      reader: fakeReader({
+        fastPath: { kind: "checks", checks: [passingCheck()] },
+      }),
+      context,
+      pendingHistory: "include",
+      allowDraft: false,
+    });
+    const rendered = renderStatusTable([cleanChecks]);
+    expect(rendered).toContain("✅");
+    expect(rendered).not.toContain("no checks");
   });
 });
 
