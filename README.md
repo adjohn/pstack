@@ -1,5 +1,8 @@
-# pstack (Port to Claude)
-## Note, this is an unofficial port to Claude Code that I'm actively maintaining. Feel free to use, and file issues/PRs as needed. Happy coding!
+# pstack
+
+> this is an unofficial fork of pstack, built for Claude Code and actively maintained. the original is [Lauren Tan](https://x.com/poteto)'s Cursor plugin. [ported from cursor](#ported-from-cursor) lists what moved, and [contributing](#contributing) says where to file issues and pull requests.
+
+the introduction below is adapted from poteto's original readme. only the cursor references changed.
 
 i'm [poteto](https://x.com/poteto). i'm not a president or ceo, but i've worked with millions of lines of code at Meta, Netflix, and Cursor. i'm also on the react core team where i help build and maintain react compiler.
 
@@ -36,35 +39,67 @@ the port tracks upstream as a vendor branch so git carries the Claude Code chang
 2. check out `main` and merge `upstream-vendor`, resolving each conflict region to upstream's side.
 3. run `scripts/port-from-cursor.sh`. it rewrites the Cursor plumbing above to Claude Code plumbing, then exits nonzero and lists any Cursor-specific text it left behind. add a rule for each line, or hand-fix it.
 4. hand-check `README.md`, `.claude-plugin/plugin.json`, and `skills/setup-pstack/SKILL.md`, which the port rewrote wholesale.
+5. land it with a merge commit, never a squash, so `main` keeps the vendor lineage the next sync merges against.
 
 ## install
 
 from your shell:
 
 ```bash
-claude plugin marketplace add /absolute/path/to/pstack
+claude plugin marketplace add adjohn/pstack
 claude plugin install pstack@pstack
 ```
 
 or from an interactive claude code session:
 
 ```text
-/plugin marketplace add /absolute/path/to/pstack
+/plugin marketplace add adjohn/pstack
 /plugin install pstack@pstack
 ```
 
-the first command registers this directory as a plugin marketplace (the path is the directory containing `.claude-plugin/marketplace.json`; swap in your own checkout's absolute path). the marketplace name in `pstack@pstack` comes from the `name` field in marketplace.json. this works because marketplace.json declares its one plugin with `"source": "./"`, making the directory both the marketplace and the plugin itself. push the directory to a git repo and others can `claude plugin marketplace add <owner>/<repo>` instead of using a local path.
+`claude plugin list` shows `pstack@pstack` as enabled after the install.
+
+or paste this into claude code and let it do the install:
+
+```text
+install the pstack plugin from https://github.com/adjohn/pstack. run `claude plugin marketplace add adjohn/pstack`, then `claude plugin install pstack@pstack`, then `claude plugin list` to confirm. check that `node` and `gh` are on my PATH and tell me if either is missing. then tell me to restart claude code and run /setup-pstack.
+```
+
+prerequisites:
+
+- claude code 2.x.
+- node.js on your PATH. the pr size hook runs on `node`. without it, `gh pr create` and `gt submit` are refused until you install node or prefix the command with `PSTACK_PR_SIZE_OK=1`. commits are unaffected.
+- the `gh` cli, for the pr playbooks (opening a pr, babysit, shipping).
+- graphite's `gt`, optional, for stacked prs.
+
+contributors install from a local clone instead. `claude plugin marketplace add /absolute/path/to/pstack` registers the checkout as a marketplace (the path is the directory containing `.claude-plugin/marketplace.json`), then `claude plugin install pstack@pstack` installs from it. the marketplace name in `pstack@pstack` comes from the `name` field in marketplace.json.
 
 ## get started
 
 two steps:
 
-1. run [`/setup-pstack`](./skills/setup-pstack/SKILL.md), pick a reasoning budget, and choose which models you want.
+1. run [`/setup-pstack`](./skills/setup-pstack/SKILL.md), pick a reasoning budget, and choose which models you want. then start a new session. the config applies to new sessions.
 2. use [`/poteto-mode`](./skills/poteto-mode/SKILL.md) whenever you're doing anything that requires rigor.
+
+`/pstack:setup-pstack` and `/pstack:poteto-mode` are the same commands with the plugin prefix. the bare forms work too. use the prefixed form when another plugin defines a skill with the same name.
 
 new here? the [pstack guide](./docs/guide/README.md) walks you through a first real task, from setup and prompting through verification and overnight runs.
 
 that's it. the other skills are situational; the mode skill uses them for you as needed. out of the box the mode splits work by model strength: code delegates (feature, refactoring, bug fix, perf, hillclimb) go to haiku, while the hardest changes, prose, and judgment go to opus. the default panel is opus / sonnet / haiku. [`/setup-pstack`](./skills/setup-pstack/SKILL.md) changes any of it.
+
+### always on
+
+optional. to have poteto mode on in every session, add this to `~/.claude/CLAUDE.md`. it needs a git clone of pstack, because the github install lands under a versioned cache path (`~/.claude/plugins/cache/pstack/pstack/<version>/`) that changes on every update.
+
+```text
+@/absolute/path/to/pstack/skills/poteto-mode/SKILL.md
+
+Poteto mode is on by default in every session. Relative paths in the poteto-mode skill above (`playbooks/*.md`, `references/*.md`) resolve against `/absolute/path/to/pstack/skills/poteto-mode/`. Leaf `principle-*` skills are the pstack plugin skills of the same name.
+```
+
+### the pr size gate
+
+the plugin ships a hook ([`hooks/hooks.json`](./hooks/hooks.json)) that watches every Bash call. after each `git commit`, `gt create`, `gt modify`, or `gt absorb` it prints the running size of the pr. it denies `gh pr create` and `gt submit` when the diff goes over either limit of the budget, 20 files or 800 added lines. set `PSTACK_PR_MAX_FILES` and `PSTACK_PR_MAX_LINES` in the `env` block of `~/.claude/settings.json` to change the numbers. prefix the create command with `PSTACK_PR_SIZE_OK=1` to pass the gate for one pr. the full rule is in [`references/pr-budget.md`](./skills/poteto-mode/references/pr-budget.md).
 
 ## usage
 
@@ -101,7 +136,6 @@ morning.
 | [visual parity](./skills/poteto-mode/playbooks/visual-parity.md) | pixel-exact ui equivalence between two implementations. |
 | [authoring a skill](./skills/poteto-mode/playbooks/authoring-a-skill.md) | writing or editing a SKILL.md. |
 | [eval](./skills/poteto-mode/playbooks/eval.md) | test how a skill or prompt change affects agent behavior, blinded. |
-| [opening a pr](./skills/poteto-mode/playbooks/opening-a-pr.md) | the shared pr-opening steps the build playbooks route through: worktree, clean commits, unslopped prose, the pr link. |
 | [babysit](./skills/poteto-mode/playbooks/babysit.md) | drive a pr or a stack to merge-ready: conflicts, review threads, ci. |
 | [shipping](./skills/poteto-mode/playbooks/shipping.md) | independently verify a green stack, then land the contiguous verified run bottom-up through github by default or origin when available. |
 | [autonomous run](./skills/poteto-mode/playbooks/autonomous-run.md) | drive a long task to completion without stopping. |
@@ -222,11 +256,11 @@ automate-me:       /automate-me
 
 ## the `poteto-agent` and Comment Sicko subagents
 
-pstack also ships a subagent that runs my style end to end. spawn it from a parent agent via [`subagent_type: "poteto-agent"`](./agents/poteto-agent.md). it reads `poteto-mode` in full, including its inline principles index, before doing any work. substituting `general-purpose` skips that read and drifts.
+pstack also ships a subagent that runs my style end to end. spawn it from a parent agent via [`subagent_type: "pstack:poteto-agent"`](./agents/poteto-agent.md). the agent reads `poteto-mode` in full, including its inline principles index, before doing any work. substituting `general-purpose` skips that read and drifts. the `pstack:` prefix is required because claude code namespaces plugin agents by plugin name, so the bare `poteto-agent` is not found.
 
-[`/poteto-mode`](./skills/poteto-mode/SKILL.md) and [`subagent_type: "poteto-agent"`](./agents/poteto-agent.md) route through the same wrapper.
+[`/poteto-mode`](./skills/poteto-mode/SKILL.md) and [`subagent_type: "pstack:poteto-agent"`](./agents/poteto-agent.md) route through the same wrapper.
 
-pstack also ships [Comment Sicko](./agents/comment-sicko.md), a read-only comment reviewer available as `subagent_type: "comment-sicko"`. usually invoke it through [`/no-comments`](./skills/no-comments/SKILL.md), not directly.
+pstack also ships [Comment Sicko](./agents/comment-sicko.md), a read-only comment reviewer available as `subagent_type: "pstack:comment-sicko"`. usually invoke it through [`/no-comments`](./skills/no-comments/SKILL.md), not directly.
 
 ## principles
 
@@ -290,6 +324,10 @@ a file written before 0.15.3 pins the old default models. delete those role line
 pstack also ships a dormant [benny automation pack](./automations/benny/). benny triages slack issue reports, then reproduces and fixes confirmed bugs with real ui evidence. its files are not registered as slash skills.
 
 to set it up, point claude code at [`FOR_AGENTS.md`](./automations/benny/FOR_AGENTS.md). setup copies the pack into the target repository at `.claude/automations/benny/`, enables pstack there for shared skills, and keeps user configuration outside the copied pack.
+
+## contributing
+
+file [issues](https://github.com/adjohn/pstack/issues) and [pull requests](https://github.com/adjohn/pstack/pulls) at this fork. upstream lives at [cursor/plugins](https://github.com/cursor/plugins/tree/main/pstack). the `upstream-vendor` branch tracks it, and port changes go on `main` on top of it. an improvement that is not specific to claude code is welcome upstream too.
 
 ## license
 

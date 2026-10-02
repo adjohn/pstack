@@ -7,18 +7,27 @@ In this page you install the plugin, pick which models pstack uses, and run your
 In a Claude Code session, run:
 
 ```text
-/plugin marketplace add /absolute/path/to/pstack
+/plugin marketplace add adjohn/pstack
 /plugin install pstack@pstack
 ```
 
 Or from your shell:
 
 ```bash
-claude plugin marketplace add /absolute/path/to/pstack
+claude plugin marketplace add adjohn/pstack
 claude plugin install pstack@pstack
 ```
 
-The path is the directory containing `.claude-plugin/marketplace.json` (your pstack checkout), and the marketplace name in `pstack@pstack` comes from the `name` field in that file. Claude Code confirms the plugin is installed.
+`claude plugin list` shows `pstack@pstack` as enabled after the install.
+
+To install from a local clone instead, register the checkout as the marketplace with `claude plugin marketplace add /absolute/path/to/pstack`, then run `claude plugin install pstack@pstack`. The path is the directory containing `.claude-plugin/marketplace.json`, and the marketplace name in `pstack@pstack` comes from the `name` field in that file.
+
+Prerequisites:
+
+- Claude Code 2.x.
+- Node.js on your PATH. The PR size hook runs on `node`. Without it, `gh pr create` and `gt submit` are refused until you install node or prefix the command with `PSTACK_PR_SIZE_OK=1`. Commits are unaffected.
+- The `gh` CLI, for the PR playbooks (opening a PR, babysit, shipping).
+- Graphite's `gt`, optional, for stacked PRs.
 
 ## Pick your models
 
