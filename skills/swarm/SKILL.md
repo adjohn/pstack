@@ -27,7 +27,7 @@ Open a todolist with one entry per phase before launching anything.
 
 ## Phase B: Fan out
 
-Spawn all N workers in one message with `subagent_type: general-purpose`, `environment: "cloud"`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`. Use `environment: "local"` only when the worker needs access to something on the user's computer.
+Spawn all N workers in one message with `subagent_type: general-purpose`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`.
 
 When a worker must start from a non-default pushed branch, say so in its brief: it checks out that branch first, in its own worktree (`git worktree add <dir> origin/<branch>`).
 

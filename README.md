@@ -37,7 +37,7 @@ the port tracks upstream as a vendor branch so git carries the Claude Code chang
 
 1. check out `upstream-vendor` (its commits are pure upstream snapshots), copy upstream's `pstack/` directory over it, commit.
 2. check out `main` and merge `upstream-vendor`, resolving each conflict region to upstream's side.
-3. run `scripts/port-from-cursor.sh`. it rewrites the Cursor plumbing above to Claude Code plumbing. grep for what it missed and add a rule.
+3. run `scripts/port-from-cursor.sh`. it rewrites the Cursor plumbing above to Claude Code plumbing, then exits nonzero and lists any Cursor-specific text it left behind. add a rule for each line, or hand-fix it.
 4. hand-check `README.md`, `.claude-plugin/plugin.json`, and `skills/setup-pstack/SKILL.md`, which the port rewrote wholesale.
 5. land it with a merge commit, never a squash, so `main` keeps the vendor lineage the next sync merges against.
 
