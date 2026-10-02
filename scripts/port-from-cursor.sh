@@ -63,6 +63,8 @@ my @rules = (
   ["**Defaults for every `Task` call.** `run_in_background: true`, agent mode (readonly strips MCP), ", "**Defaults for every `Agent` call.** `run_in_background: true`, "],
   ["(omit Task `model`)", "(omit the Agent `model`)"],
   ["Task subagent", "subagent"],
+  ["subagent_type: \"poteto-agent\"", "subagent_type: \"pstack:poteto-agent\""],
+  ["subagent_type: \"comment-sicko\"", "subagent_type: \"pstack:comment-sicko\""],
   ["full Task schema including `environment`", "full Agent tool schema"],
   ["the Task tool", "the Agent tool"],
   ["`Task` call", "`Agent` call"],
