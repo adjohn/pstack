@@ -15,7 +15,7 @@ Start from the documented model aliases as candidates: `haiku`, `sonnet`, `opus`
 
 ### 2. Load current state
 
-The default role-to-model mapping is the file shape shown in step 5 below. If `~/.claude/pstack-models.md` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults.
+The default role-to-model mapping is the file shape shown in step 5 below. If `~/.claude/pstack-models.md` already exists, read it and treat its `# budget` line and its role values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `how critics`, is from a retired role. Drop it.
 
 ### 3. Budget, map, and confirm
 
@@ -28,7 +28,7 @@ The default role-to-model mapping is the file shape shown in step 5 below. If `~
 
 **(b) Apply it.** Claude Code model tiers carry no effort token, so the budget is one session-wide effort level, and subagents run at the session's level, so it covers every role. `large`, `medium`, and `small` set `effortLevel` in `~/.claude/settings.json` to `xhigh`, `high`, or `medium`. Read the JSON, set that one key, write it back, and leave every other key as it was. `unlimited` removes the key, so each model runs at its own default. `max` cannot be persisted, so on `unlimited` tell the user that `/effort max` or `CLAUDE_CODE_EFFORT_LEVEL=max` reaches it per session. A saved per-model level under `modelSettings` outranks `effortLevel`, so name any such entry you find and ask before touching it. Role models do not change with the budget. Build the working table from the skill defaults, and on a re-run keep any role you changed by tier, list, or alias (`inherit-parent`, `auto`).
 
-**(c) Show the roles and confirm.** Show every role with its model, marking any real slug not in the detected set as needing a choice. Ask whether to accept as-is or change specific roles, offering the detected models plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how users on the default model setting stay on it) as the options. Prefer AskUserQuestion over free text. For panel roles (arena runners, architect runners, interrogate reviewers) the value is a list, and one subagent runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena selects one value from it whose model tier differs from the parent's when possible. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
+**(c) Show the roles and confirm.** Show every role with its model, marking any real slug not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how users on the default model setting stay on it) as the options. Prefer AskUserQuestion over free text. For panel roles (arena runners, architect runners, interrogate reviewers) the value is a list, and one subagent runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena selects one value from it whose model tier differs from the parent's when possible. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
 
 ### 4. Validate
 
@@ -46,19 +46,19 @@ feature, refactoring: haiku
 bug-fix: haiku
 perf-issue: haiku
 hillclimb: haiku
-judgment and prose: fable
-hardest tasks: fable
+judgment and prose: opus
+hardest tasks: opus
 how explorer: haiku
-how explainer: fable
+how explainer: opus
 why investigators: haiku
-why synthesizer: fable
+why synthesizer: opus
 reflect tooling: sonnet
-reflect judgment, divergent, synthesizer: fable
-arena runners: fable, sonnet, haiku, opus
-arena cross-judge pool: fable, sonnet, haiku, opus
+reflect judgment, divergent, synthesizer: opus
+arena runners: opus, sonnet, haiku
+arena cross-judge pool: opus, sonnet, haiku
 swarm workers: haiku
-architect runners: fable, sonnet, haiku, opus
-interrogate reviewers: fable, sonnet, haiku, opus
+architect runners: opus, sonnet, haiku
+interrogate reviewers: opus, sonnet, haiku
 ```
 
 Then make it always loaded: read `~/.claude/CLAUDE.md` (create it if it does not exist) and add the line `@~/.claude/pstack-models.md` if it is not already present. That memory import pulls the file into every session. Adding the line is idempotent: skip it when it is already there, and never duplicate it.

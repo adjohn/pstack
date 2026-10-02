@@ -10,7 +10,23 @@ find skills agents docs -type f \( -name '*.md' -o -name '*.ts' -o -name '*.mjs'
 my $slug = q{`<slug>` is the absolute working directory, symlinks resolved, with every character that is not a letter or digit, including `/`, `.`, and `_`, replaced by `-`, so `/Users/you/proj` becomes `-Users-you-proj`};
 my $verify = q{the project'"'"'s verification skill (`verify-<app>`, created by `/create-verification-skill`)};
 my @rules = (
+  # model fallbacks: provider families -> Claude tiers
+  ["If the Agent tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use `claude-opus-5-5-max`. If it rejects a default, use the closest valid slug of the same family from its error message.",
+   "If the Agent tool rejects a configured entry, run that seat on `claude-opus-5-5-max` and say so."],
+  ["If the Agent tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A'"'"'s default. If it rejects a table default,",
+   "If the Agent tool rejects a configured entry, run that reviewer on Reviewer A'"'"'s default and say so. If it rejects a table default,"],
+  ["If it rejects the default, use the closest valid slug of the same family from its error message.", "If it rejects the default, use the nearest Claude tier from its error message."],
+  ["the `pstack-models.mdc` rule", "`~/.claude/pstack-models.md`"],
+  ["If the rule or that line is missing", "If the file or that line is missing"],
+  ["If the rule or the line is missing", "If the file or the line is missing"],
+  ["if the rule or the line is missing", "if the file or the line is missing"],
+  ["A role with no line in the rule", "A role with no line in the file"],
+  ["A rule written before 0.15.3", "A file written before 0.15.3"],
+  ["a rule written before 0.15.3", "a file written before 0.15.3"],
+
   # model slugs -> Claude tiers
+  ["claude-opus-5-5-max", "opus"],
+  ["grok-4.7-xhigh-fast", "haiku"],
   ["claude-fable-5-1-thinking-max", "fable"],
   ["claude-fable-5-thinking-max", "fable"],
   ["gpt-5.6-sol-max", "sonnet"],
