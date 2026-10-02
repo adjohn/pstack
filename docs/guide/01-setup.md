@@ -25,7 +25,7 @@ To install from a local clone instead, register the checkout as the marketplace 
 Prerequisites:
 
 - Claude Code 2.x.
-- Node.js on your PATH. The PR size hook runs `node` on every `git commit` and `gh pr create`. Without it those commands print a hook error.
+- Node.js on your PATH. The PR size hook runs on `node`. Without it, `gh pr create` and `gt submit` are refused until you install node or prefix the command with `PSTACK_PR_SIZE_OK=1`. Commits are unaffected.
 - The `gh` CLI, for the PR playbooks (opening a PR, babysit, shipping).
 - Graphite's `gt`, optional, for stacked PRs.
 

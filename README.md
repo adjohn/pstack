@@ -1,8 +1,8 @@
 # pstack
 
-> this is an unofficial fork of pstack, built for Claude Code and actively maintained. the original is [Lauren Tan](https://x.com/poteto)'s Cursor plugin at [cursor/plugins](https://github.com/cursor/plugins/tree/main/pstack). file [issues](https://github.com/adjohn/pstack/issues) and [pull requests](https://github.com/adjohn/pstack/pulls) at this fork. [ported from cursor](#ported-from-cursor) lists what moved.
+> this is an unofficial fork of pstack, built for Claude Code and actively maintained. the original is [Lauren Tan](https://x.com/poteto)'s Cursor plugin. [ported from cursor](#ported-from-cursor) lists what moved, and [contributing](#contributing) says where to file issues and pull requests.
 
-the introduction below is from the original readme, in poteto's words.
+the introduction below is adapted from poteto's original readme. only the cursor references changed.
 
 i'm [poteto](https://x.com/poteto). i'm not a president or ceo, but i've worked with millions of lines of code at Meta, Netflix, and Cursor. i'm also on the react core team where i help build and maintain react compiler.
 
@@ -68,7 +68,7 @@ install the pstack plugin from https://github.com/adjohn/pstack. run `claude plu
 prerequisites:
 
 - claude code 2.x.
-- node.js on your PATH. the pr size hook runs `node` on every `git commit` and `gh pr create`. without it those commands print a hook error.
+- node.js on your PATH. the pr size hook runs on `node`. without it, `gh pr create` and `gt submit` are refused until you install node or prefix the command with `PSTACK_PR_SIZE_OK=1`. commits are unaffected.
 - the `gh` cli, for the pr playbooks (opening a pr, babysit, shipping).
 - graphite's `gt`, optional, for stacked prs.
 
@@ -92,7 +92,6 @@ that's it. the other skills are situational; the mode skill uses them for you as
 optional. to have poteto mode on in every session, add this to `~/.claude/CLAUDE.md`. it needs a git clone of pstack, because the github install lands under a versioned cache path (`~/.claude/plugins/cache/pstack/pstack/<version>/`) that changes on every update.
 
 ```text
-@~/.claude/pstack-models.md
 @/absolute/path/to/pstack/skills/poteto-mode/SKILL.md
 
 Poteto mode is on by default in every session. Relative paths in the poteto-mode skill above (`playbooks/*.md`, `references/*.md`) resolve against `/absolute/path/to/pstack/skills/poteto-mode/`. Leaf `principle-*` skills are the pstack plugin skills of the same name.
@@ -100,7 +99,7 @@ Poteto mode is on by default in every session. Relative paths in the poteto-mode
 
 ### the pr size gate
 
-the plugin ships a hook ([`hooks/hooks.json`](./hooks/hooks.json)) that watches every Bash call. after each `git commit` it prints the running size of the pr. it denies `gh pr create` and `gt submit` when the diff goes over either limit of the budget, 20 files or 800 added lines. set `PSTACK_PR_MAX_FILES` and `PSTACK_PR_MAX_LINES` in the `env` block of `~/.claude/settings.json` to change the numbers. prefix the create command with `PSTACK_PR_SIZE_OK=1` to pass the gate for one pr. the full rule is in [`references/pr-budget.md`](./skills/poteto-mode/references/pr-budget.md).
+the plugin ships a hook ([`hooks/hooks.json`](./hooks/hooks.json)) that watches every Bash call. after each `git commit`, `gt create`, `gt modify`, or `gt absorb` it prints the running size of the pr. it denies `gh pr create` and `gt submit` when the diff goes over either limit of the budget, 20 files or 800 added lines. set `PSTACK_PR_MAX_FILES` and `PSTACK_PR_MAX_LINES` in the `env` block of `~/.claude/settings.json` to change the numbers. prefix the create command with `PSTACK_PR_SIZE_OK=1` to pass the gate for one pr. the full rule is in [`references/pr-budget.md`](./skills/poteto-mode/references/pr-budget.md).
 
 ## usage
 
@@ -137,7 +136,6 @@ morning.
 | [visual parity](./skills/poteto-mode/playbooks/visual-parity.md) | pixel-exact ui equivalence between two implementations. |
 | [authoring a skill](./skills/poteto-mode/playbooks/authoring-a-skill.md) | writing or editing a SKILL.md. |
 | [eval](./skills/poteto-mode/playbooks/eval.md) | test how a skill or prompt change affects agent behavior, blinded. |
-| [opening a pr](./skills/poteto-mode/playbooks/opening-a-pr.md) | the shared pr-opening steps the build playbooks route through: worktree, clean commits, unslopped prose, the pr link. |
 | [babysit](./skills/poteto-mode/playbooks/babysit.md) | drive a pr or a stack to merge-ready: conflicts, review threads, ci. |
 | [shipping](./skills/poteto-mode/playbooks/shipping.md) | independently verify a green stack, then land the contiguous verified run bottom-up through github by default or origin when available. |
 | [autonomous run](./skills/poteto-mode/playbooks/autonomous-run.md) | drive a long task to completion without stopping. |
