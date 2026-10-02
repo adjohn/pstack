@@ -11,9 +11,9 @@ my $slug = q{`<slug>` is the absolute working directory, symlinks resolved, with
 my $verify = q{the project'"'"'s verification skill (`verify-<app>`, created by `/create-verification-skill`)};
 my @rules = (
   # model fallbacks: provider families -> Claude tiers
-  ["If the Agent tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use `claude-opus-5-5-max`. If it rejects a default, use the closest valid slug of the same family from its error message.",
+  ["If the Task tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use `claude-opus-5-5-max`. If it rejects a default, use the closest valid slug of the same family from its error message.",
    "If the Agent tool rejects a configured entry, run that seat on `claude-opus-5-5-max` and say so."],
-  ["If the Agent tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A'"'"'s default. If it rejects a table default,",
+  ["If the Task tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A'"'"'s default. If it rejects a table default,",
    "If the Agent tool rejects a configured entry, run that reviewer on Reviewer A'"'"'s default and say so. If it rejects a table default,"],
   ["If it rejects the default, use the closest valid slug of the same family from its error message.", "If it rejects the default, use the nearest Claude tier from its error message."],
   ["the `pstack-models.mdc` rule", "`~/.claude/pstack-models.md`"],
@@ -63,6 +63,9 @@ my @rules = (
   ["**Defaults for every `Task` call.** `run_in_background: true`, agent mode (readonly strips MCP), ", "**Defaults for every `Agent` call.** `run_in_background: true`, "],
   ["(omit Task `model`)", "(omit the Agent `model`)"],
   ["Task subagent", "subagent"],
+  ["subagent_type: \"poteto-agent\"", "subagent_type: \"pstack:poteto-agent\""],
+  ["Spawn `Task` with `subagent_type: \"Comment Sicko\"`.", "Spawn Comment Sicko with `Agent` (the subagent-launching tool) and `subagent_type: \"pstack:comment-sicko\"`."],
+  ["subagent_type: \"comment-sicko\"", "subagent_type: \"pstack:comment-sicko\""],
   ["full Task schema including `environment`", "full Agent tool schema"],
   ["the Task tool", "the Agent tool"],
   ["`Task` call", "`Agent` call"],
