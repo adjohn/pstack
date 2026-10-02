@@ -1,5 +1,6 @@
 import { parsePrNumber } from "./types.ts";
 import type {
+  CheckRead,
   CiClean,
   GitHubMergeAllowed,
   PrContext,
@@ -87,7 +88,11 @@ const unprovenPr = { kind: "ready-pr", context } as const;
 // @ts-expect-error An open READY row must carry positive readiness proof.
 const readyWithoutProof: ReadyPr = unprovenPr;
 
+// @ts-expect-error A gh-pr-checks/graphql-rollup source must carry a non-empty check list.
+const emptyChecksWithLiveSource: CheckRead = { source: "gh-pr-checks", checks: [] };
+
 void refusalIsNotAllowed;
 void refusalIsNotClean;
 void readyWithBlockerExit;
 void readyWithoutProof;
+void emptyChecksWithLiveSource;

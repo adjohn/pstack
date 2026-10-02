@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
+import { realpathSync } from "node:fs";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 export const DEFAULTS = { maxFiles: 20, maxLines: 800 };
 
@@ -37,24 +39,44 @@ export function resolveBase(cwd, explicit) {
 
 function attributed(cwd, paths) {
 	if (paths.length === 0) return new Set();
-	const out = git(cwd, ["check-attr", "--stdin", "linguist-generated", "linguist-vendored"], paths.join("\n") + "\n");
+	const out = git(cwd, ["check-attr", "-z", "--stdin", "linguist-generated", "linguist-vendored"], paths.map((p) => `${p}\0`).join(""));
+	const fields = out.split("\0");
+	if (fields.at(-1) === "") fields.pop();
 	const marked = new Set();
-	for (const line of out.split("\n")) {
-		const [path, , value] = line.split(": ");
+	for (let i = 0; i + 2 < fields.length; i += 3) {
+		const [path, , value] = [fields[i], fields[i + 1], fields[i + 2]];
 		if (value === "set" || value === "true") marked.add(path);
 	}
 	return marked;
 }
 
+function parseNumstat(raw) {
+	const fields = raw.split("\0");
+	if (fields.at(-1) === "") fields.pop();
+	const rows = [];
+	for (let i = 0; i < fields.length; ) {
+		const m = /^(-|\d+)\t(-|\d+)\t(.*)$/s.exec(fields[i]);
+		if (!m) {
+			i += 1;
+			continue;
+		}
+		const [, added, deleted, inlinePath] = m;
+		let path;
+		if (inlinePath) {
+			path = inlinePath;
+			i += 1;
+		} else {
+			path = fields[i + 2];
+			i += 3;
+		}
+		rows.push({ path, added: added === "-" ? 0 : Number(added), deleted: deleted === "-" ? 0 : Number(deleted), binary: added === "-" });
+	}
+	return rows;
+}
+
 export function measure(cwd, base) {
 	const mergeBase = git(cwd, ["merge-base", base, "HEAD"]);
-	const rows = git(cwd, ["diff", "--numstat", mergeBase, "HEAD"])
-		.split("\n")
-		.filter(Boolean)
-		.map((line) => {
-			const [added, deleted, path] = line.split("\t");
-			return { path, added: added === "-" ? 0 : Number(added), deleted: deleted === "-" ? 0 : Number(deleted), binary: added === "-" };
-		});
+	const rows = parseNumstat(git(cwd, ["diff", "--numstat", "-z", mergeBase, "HEAD"]));
 	const marked = attributed(cwd, rows.map((r) => r.path));
 	const counted = rows.filter((r) => !r.binary && !marked.has(r.path) && !FREE.some((re) => re.test(r.path)));
 	return {
@@ -114,6 +136,15 @@ export function main(argv, cwd = process.cwd(), env = process.env) {
 	return over.length ? 1 : 0;
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+export function isMainModule(argv1 = process.argv[1], url = import.meta.url) {
+	if (!argv1) return false;
+	try {
+		return realpathSync(argv1) === fileURLToPath(url);
+	} catch {
+		return false;
+	}
+}
+
+if (isMainModule()) {
 	process.exit(main(process.argv.slice(2)));
 }
