@@ -10,6 +10,8 @@ Investigate the motivation and intent behind code.
 
 Companion to the `how` skill. `how` answers what the code does and how it works. `why` answers what forces led to its shape.
 
+Each spawn below names a role line in `~/.claude/pstack-models.md` and a default. Set `model` to that line's value, or to the default if the file or the line is missing. Leave `model` unset when the value is `auto` or `inherit-parent`. If the Agent tool rejects a slug, use the default and say so. If it rejects the default, use the nearest Claude tier from its error message.
+
 ## Operating Posture
 
 Operate as a **careful, cautious, and precise investigator**. Be honest about what you know vs what you're inferring. Read `references/epistemics.md` for the full confidence framework and phrasing guide. The synthesizer must follow it.
@@ -79,7 +81,7 @@ Launch all matching investigators in a single message so they run concurrently. 
 
 Subagent config (each):
 - `subagent_type`: `general-purpose`
-- `model`: your configured why-investigators model (default `haiku`)
+- `model`: the `why investigators` line, default `haiku`
 - Investigators must not write anything. That's an instruction in their prompt, not a sandbox. Subagents inherit MCP tools by default, which the MCP-backed investigators need.
 
 Each investigator gets:
@@ -123,7 +125,7 @@ If your scope assessment suggests a single-commit trivial target where the PR de
 Spawn one synthesizer subagent:
 
 - `subagent_type`: `general-purpose`
-- `model`: your configured why-synthesizer model (default `fable`)
+- `model`: the `why synthesizer` line, default `opus`
 - The synthesizer must not write anything. That's an instruction in its prompt. Its quality check spot-verifies citations, which can require MCP access, and subagents inherit MCP tools by default.
 
 The synthesizer gets:

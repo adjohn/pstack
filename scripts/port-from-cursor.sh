@@ -5,12 +5,28 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-find skills agents docs -type f \( -name '*.md' -o -name '*.ts' -o -name '*.mjs' -o -name '*.sh' -o -name '*.yaml' \) -print0 |
+find skills agents docs -path '*/node_modules' -prune -o -type f \( -name '*.md' -o -name '*.ts' -o -name '*.mjs' -o -name '*.sh' -o -name '*.yaml' \) -print0 |
   xargs -0 perl -0pi -e '
 my $slug = q{`<slug>` is the absolute working directory, symlinks resolved, with every character that is not a letter or digit, including `/`, `.`, and `_`, replaced by `-`, so `/Users/you/proj` becomes `-Users-you-proj`};
 my $verify = q{the project'"'"'s verification skill (`verify-<app>`, created by `/create-verification-skill`)};
 my @rules = (
+  # model fallbacks: provider families -> Claude tiers
+  ["If the Task tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use `claude-opus-5-5-max`. If it rejects a default, use the closest valid slug of the same family from its error message.",
+   "If the Agent tool rejects a configured entry, run that seat on `claude-opus-5-5-max` and say so."],
+  ["If the Task tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A'"'"'s default. If it rejects a table default,",
+   "If the Agent tool rejects a configured entry, run that reviewer on Reviewer A'"'"'s default and say so. If it rejects a table default,"],
+  ["If it rejects the default, use the closest valid slug of the same family from its error message.", "If it rejects the default, use the nearest Claude tier from its error message."],
+  ["the `pstack-models.mdc` rule", "`~/.claude/pstack-models.md`"],
+  ["If the rule or that line is missing", "If the file or that line is missing"],
+  ["If the rule or the line is missing", "If the file or the line is missing"],
+  ["if the rule or the line is missing", "if the file or the line is missing"],
+  ["A role with no line in the rule", "A role with no line in the file"],
+  ["A rule written before 0.15.3", "A file written before 0.15.3"],
+  ["a rule written before 0.15.3", "a file written before 0.15.3"],
+
   # model slugs -> Claude tiers
+  ["claude-opus-5-5-max", "opus"],
+  ["grok-4.7-xhigh-fast", "haiku"],
   ["claude-fable-5-1-thinking-max", "fable"],
   ["claude-fable-5-thinking-max", "fable"],
   ["gpt-5.6-sol-max", "sonnet"],
@@ -59,6 +75,8 @@ my @rules = (
   ["- `readonly`: `false` (agent mode). The synthesizer'"'"'s quality check spot-verifies citations, which can require MCP access. Readonly/Ask mode strips MCPs and defeats that.",
    "- The synthesizer must not write anything. That'"'"'s an instruction in its prompt. Its quality check spot-verifies citations, which can require MCP access, and subagents inherit MCP tools by default."],
   ["Always `environment: \"cloud\"` unless", "Always cloud unless"],
+  [", `environment: \"cloud\"`", ""],
+  [" Use `environment: \"local\"` only when the worker needs access to something on the user'"'"'s computer.", ""],
   ["Simulators and local IDE state.", "Simulators and local machine state."],
 
   # Cursor product surface -> Claude Code equivalents
@@ -74,6 +92,8 @@ my @rules = (
   [", and not Cursor'"'"'s built-in babysit skill, whose description matches the same words", ""],
 
   # cursor-team-kit: control skills -> verify-<app>, deslop -> /simplify, create-skill -> skill-creator
+  ["with the matching control skill (such as `control-ui` or `control-cli` from `cursor-team-kit`)", "with $verify"],
+  ["with the matching control skill, such as `control-cli` or `control-ui` from `cursor-team-kit`, or a named driver", "with $verify, or a named driver"],
   ["the matching control skill. `cursor-team-kit` publishes `control-cli` (CLIs and TUIs) and `control-ui` (browser / Electron / web UIs).", "$verify."],
   ["`control-ui` or `control-cli` runtime verification (from `cursor-team-kit`)", "runtime verification via $verify"],
   ["(`control-ui` or `control-cli` from `cursor-team-kit` as the change demands)", "(the project'"'"'s verification skill, `verify-<app>` created by `/create-verification-skill`, as the change demands)"],
@@ -85,7 +105,9 @@ my @rules = (
   ["through its control skill", "through its verification skill"],
   ["the control surface", "the verification surface"],
   ["the `deslop` skill from the `cursor-team-kit` plugin (`/deslop`)", "Claude Code'"'"'s built-in `/simplify`"],
+  ["`/deslop`", "`/simplify`"],
   ["skeptical Bugbot triage", "skeptical review-bot triage (Cursor'"'"'s Bugbot, Claude Code'"'"'s `/code-review`, or similar)"],
+  ["every Bugbot and security-reviewer comment", "every review-bot comment (Cursor'"'"'s Bugbot, Claude Code'"'"'s `/code-review`, or similar) and security-reviewer comment"],
   ["**Bugbot is triaged skeptically, always.**", "**Review bots are triaged skeptically, always.**"],
   ["the watcher'"'"'s Bugbot pass count", "the watcher'"'"'s review-bot pass count"],
   ["Skip when: Bugbot flags", "Skip when: The review bot flags"],
@@ -119,3 +141,9 @@ for my $r (@rules) { my ($from, $to) = @$r; s/\Q$from\E/$to/g; }
 s{re-read this playbook from trunk with `git show origin/main:pstack/([^`]+)`}{re-read this playbook from the installed pstack plugin (`cat \${CLAUDE_PLUGIN_ROOT}/$1`; the plugin install is the canonical copy, never a copy inside a work worktree)}g;
 s{`git show origin/main:pstack/([^`]+)`}{`cat \${CLAUDE_PLUGIN_ROOT}/$1`}g;
 '
+
+leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|cloud_base_branch' skills agents docs || true)
+if [ -n "$leftovers" ]; then
+  printf 'Cursor-specific text the rules did not port:\n%s\n' "$leftovers" >&2
+  exit 1
+fi
