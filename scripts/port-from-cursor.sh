@@ -11,9 +11,9 @@ my $slug = q{`<slug>` is the absolute working directory, symlinks resolved, with
 my $verify = q{the project'"'"'s verification skill (`verify-<app>`, created by `/create-verification-skill`)};
 my @rules = (
   # model fallbacks: provider families -> Claude tiers
-  ["If the Agent tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use `claude-opus-5-5-max`. If it rejects a default, use the closest valid slug of the same family from its error message.",
+  ["If the Task tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use `claude-opus-5-5-max`. If it rejects a default, use the closest valid slug of the same family from its error message.",
    "If the Agent tool rejects a configured entry, run that seat on `claude-opus-5-5-max` and say so."],
-  ["If the Agent tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A'"'"'s default. If it rejects a table default,",
+  ["If the Task tool rejects a configured entry, run that reviewer on the table default of its family and say so. Families go by prefix: `claude-*`, `gpt-*`, and `grok-*`. With no family match, use Reviewer A'"'"'s default. If it rejects a table default,",
    "If the Agent tool rejects a configured entry, run that reviewer on Reviewer A'"'"'s default and say so. If it rejects a table default,"],
   ["If it rejects the default, use the closest valid slug of the same family from its error message.", "If it rejects the default, use the nearest Claude tier from its error message."],
   ["the `pstack-models.mdc` rule", "`~/.claude/pstack-models.md`"],
