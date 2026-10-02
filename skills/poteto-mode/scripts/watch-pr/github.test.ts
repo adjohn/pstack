@@ -57,7 +57,7 @@ describe("checks fallback chain", () => {
       fastPath: { kind: "checks", checks: [] },
       rollupPages: [{ checks: [pendingCheck("fallback")], endCursor: null }],
     });
-    expect((await resolveChecks(reader, context)).checks[0].name).toBe(
+    expect((await resolveChecks(reader, context)).checks[0]?.name).toBe(
       "fallback"
     );
     expect(reader.calls).toEqual(["checksFastPath", "checkRollupPage:null"]);
