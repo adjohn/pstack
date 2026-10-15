@@ -19,7 +19,7 @@ The default role-to-model mapping is the file shape shown in step 5 below. If `~
 
 ### 3. Budget, map, and confirm
 
-**(a) Ask for a budget.** Prefer AskUserQuestion over free text. Offer these four options with these exact labels, and name the current budget when the file records one.
+**(a) Ask for a budget.** Prefer AskUserQuestion over free text. Offer these four options with these exact labels, and name the current budget when the file records one. With no file, say that `unlimited` matches the skill defaults.
 
 - `unlimited (model default, max per session)`
 - `large (xhigh reasoning)`
@@ -52,13 +52,13 @@ how explorer: haiku
 how explainer: opus
 why investigators: haiku
 why synthesizer: opus
-reflect tooling: sonnet
+reflect tooling: haiku
 reflect judgment, divergent, synthesizer: opus
-arena runners: opus, sonnet, haiku
-arena cross-judge pool: opus, sonnet, haiku
+arena runners: opus, haiku
+arena cross-judge pool: opus, haiku
 swarm workers: haiku
-architect runners: opus, sonnet, haiku
-interrogate reviewers: opus, sonnet, haiku
+architect runners: opus, haiku
+interrogate reviewers: opus, haiku
 ```
 
 Then make it always loaded: read `~/.claude/CLAUDE.md` (create it if it does not exist) and add the line `@~/.claude/pstack-models.md` if it is not already present. That memory import pulls the file into every session. Adding the line is idempotent: skip it when it is already there, and never duplicate it.

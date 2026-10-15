@@ -139,13 +139,95 @@ my @rules = (
   ["when the rule records one", "when the file records one"],
   ["with `alwaysApply: true`, a", "with a"],
   ["a small rule every pstack skill reads.", "a small config file every pstack skill reads, and adds the line `@~/.claude/pstack-models.md` to `~/.claude/CLAUDE.md` so the file is always loaded."],
+
+  # 0.15.25: these rules match text the rules above already rewrote, so they stay last
+  # Grok/Composer family fallbacks and the xhigh default slug -> Claude tiers
+  ["If the Agent tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on `haiku`. With no family match, use `claude-opus-5-5-xhigh`. If it rejects a default, use the closest valid slug of the same family from its error message.",
+   "If the Agent tool rejects a configured entry, run that seat on `opus` and say so."],
+  ["If the Agent tool rejects a configured entry, run that reviewer on its family'"'"'s table default and say so. Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on Reviewer B'"'"'s default. With no family match, use Reviewer A'"'"'s default. If it rejects a table default,",
+   "If the Agent tool rejects a configured entry, run that reviewer on Reviewer A'"'"'s default and say so. If it rejects a table default,"],
+  ["(prefer the same family and reasoning tier)", "(prefer the nearest Claude tier)"],
+  ["claude-opus-5-5-xhigh", "opus"],
+
+  # readonly flag and Cursor MCP discovery -> prompt instruction and Claude Code MCP surface
+  ["Every spawn is a subagent with `subagent_type: general-purpose` and `readonly: true`.",
+   "Every spawn is a read-only subagent with `subagent_type: general-purpose`: its prompt forbids file writes and mutating commands."],
+  ["Each reviewer gets `subagent_type: general-purpose`, `readonly: true`, and",
+   "Each reviewer gets `subagent_type: general-purpose`, a prompt that forbids file writes and mutating commands, and"],
+  [", and readonly strips MCPs.", ". Subagents inherit MCP tools by default."],
+  ["Every spawn is `general-purpose` with `readonly: false` (agent mode). **Do not use readonly/Ask mode.** It strips MCP access, which disables the MCP-backed investigators and the synthesizer'"'"'s citation spot-checks. Investigators still shouldn'"'"'t write anything.",
+   "Every spawn is `general-purpose`. Subagents inherit MCP tools by default, which the MCP-backed investigators and the synthesizer'"'"'s citation spot-checks need. Investigators must not write anything. That'"'"'s an instruction in their prompt, not a sandbox."],
+  ["list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.",
+   "list the MCP servers available in the session (`claude mcp list`, or the `mcp__*` tools visible in-session)."],
+  ["(open files, recent edits, cursor location, what was just discussed)", "(recent edits and what was just discussed)"],
+
+  # cloud workers and cursor-team-kit control skills -> worktrees and verify-<app>
+  ["pass `cloud_base_branch`.", "say so in its brief: it checks out that branch first, in its own worktree (`git worktree add <dir> origin/<branch>`)."],
+  ["**Control skill.** Pick it by surface. Browser, Electron, and web UIs use `control-ui` from `cursor-team-kit`. CLIs and TUIs use `control-cli` from `cursor-team-kit`.",
+   "**Verification skill.** Pick it by surface. Browser, Electron, web UIs, CLIs, and TUIs use $verify."],
+  ["A surface with no control skill is", "A surface with no verification skill is"],
+  ["Each live lane runs on its own cloud VM at the PR head. Drive through `control-ui` or `control-cli` from `cursor-team-kit`.",
+   "Each live lane runs as its own background worker in its own worktree or checkout at the PR head. Drive through the project'"'"'s verification skill (`verify-<app>`)."],
+  ["its verification skill (such as `control-ui` or `control-cli` from `cursor-team-kit`)", $verify],
+  ["Run `/simplify` from `cursor-team-kit`", "Run Claude Code'"'"'s built-in `/simplify`"],
+  ["`/simplify` ships in the `cursor-team-kit` plugin, not in pstack.", "`/simplify` is a Claude Code built-in, not part of pstack."],
+  [", not Cursor'"'"'s built-in babysit skill, whose description matches the same words.", "."],
+  ["a Cursor restart", "a Claude Code restart"],
+
+  # transcripts, plugin paths, and tool names in reflect and its reviewer prompts
+  ["find this conversation'"'"'s transcript in the `agent-transcripts/` directory the system prompt names.",
+   "find this conversation'"'"'s transcript under `~/.claude/projects/<slug>/`, one `.jsonl` per session with one JSON message per line, where $slug. Derive the directory from the current working directory."],
+  ["(under `.claude/skills/`, `~/.claude/skills/`, or `~/.cursor/plugins/`), a `Task` prompt naming its path, or a tool call (Shell, Grep, MCP, etc.) matching its documented commands.",
+   "(under `.claude/skills/`, `~/.claude/skills/`, or `~/.claude/plugins/`), an `Agent` prompt naming its path, a `Skill` tool call naming it (a skill invoked that way never shows a `SKILL.md` Read), or a tool call (Bash, Grep, MCP, etc.) matching its documented commands."],
+  ["Re-read the execution playbook from trunk.", "Re-read the execution playbook from the installed pstack plugin."],
+
+  # Cursor'"'"'s /visualize -> plain charts; setup-pstack'"'"'s default budget is the fork'"'"'s unlimited
+  ["a chart or diagram from `/visualize`", "a chart"],
+  ["a `/visualize` chart for numbers", "a chart for numbers"],
+  ["With no rule, say that `large` matches the skill defaults.", "With no file, say that `unlimited` matches the skill defaults."],
+
+  # poteto-agent plugin lookup; guide pages: Custom Modes, cloud subagents, Cursor Projects, make-bot-ui
+  ["and every Task spawn.",
+   "and every Agent spawn."],
+  ["search `~/.cursor/plugins/` for a file whose path ends in `skills/poteto-mode/SKILL.md`. If more than one file matches, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`.",
+   "search `~/.claude/plugins/` for a file whose path ends in `skills/poteto-mode/SKILL.md`. If more than one file matches, use the copy whose `.claude-plugin/plugin.json` has the highest `version`."],
+  ["The defaults run at `xhigh` reasoning, the same as the `large` budget. `unlimited` lifts each model to its highest tier, up to `max`. Opus goes to `max`. Grok tops out at `xhigh`, so it stays there. `medium` and `small` lower the reasoning and spend fewer tokens.",
+   "The defaults leave each model at its own reasoning effort, the same as the `unlimited` budget. `large`, `medium`, and `small` set one session-wide effort level, `xhigh`, `high`, or `medium`, in `~/.claude/settings.json`. Lower levels spend fewer tokens."],
+  ["a rule written before the change",
+   "a file written before the change"],
+  ["To keep `/poteto-mode` on for the whole chat, pick it from the `/` menu with Option+Enter (Mac) or Alt+Enter (Windows) instead of Enter. That makes it a [Custom Mode](https://cursor.com/docs/skills), which stays in context on every turn until you exit it. Custom Modes are available in the Agents Window and the CLI. Plain Enter attaches the skill to one message, and it fades as the chat moves on.",
+   "`/poteto-mode` attaches the skill to the message it starts, and it fades as the session moves on. To keep it in context on every turn, use the always-on setup in the [README](../../README.md#always-on), or start each new task with `/poteto-mode`."],
+  ["and a Custom Mode keeps `/poteto-mode` in context on every turn.",
+   "and the always-on setup keeps `/poteto-mode` in context on every turn."],
+  ["The cleanest isolation is a [cloud subagent](https://cursor.com/docs/subagents#cloud-subagents). Each one gets its own VM and branch, so it can install dependencies, run your app, and record video of the result without touching your machine. Type `/in-cloud` before the task, or ask the parent chat to hand work to cloud subagents.",
+   "The cleanest isolation is a [Claude Code cloud session](https://code.claude.com/docs/en/claude-code-on-the-web). Each one gets its own VM and branch, so it can install dependencies and run your app without touching your machine."],
+  ["an isolated worktree or cloud agent,",
+   "an isolated worktree or cloud session,"],
+  ["A [Cursor Project](https://cursor.com/blog/projects) gives one coordinator agent a persistent thread. The coordinator doesn'"'"'t write code. It directs subagents, which run in the cloud by default, so the work continues when your laptop is closed.",
+   "A long-running Claude Code session gives one coordinator agent a persistent thread. The coordinator doesn'"'"'t write code. It directs subagents. Run the coordinator as a cloud session and the work continues when your laptop is closed."],
+  ["Run them as cloud agents, or say \"own worktree per attempt\".",
+   "Say \"own worktree per attempt\", or run them as cloud sessions."],
+  ["## Build a bot UI with `/make-bot-ui`\n\nOne situational skill is for Grok Bot users. [`/make-bot-ui`](../../skills/make-bot-ui/SKILL.md) builds a small page whose buttons wake a bot over a webhook routine. For example, you could swipe through a review queue and have each swipe ask the bot to act on that item. A server on your machine holds the webhook'"'"'s sender key, so the key never reaches the browser or the chat. The skill also covers exposing the page on Tailscale.\n\n",
+   ""],
+
+  # per-spawn effort and fast-mode picks (Cursor slug suffixes) -> model tier per spawn
+  ["**Match the model to the job.** Before each spawn, start from the role'"'"'s line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role'"'"'s starting level, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`haiku` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. If the family has no slug at that level and speed, use its nearest slug. A role on `auto` or `inherit-parent` stays on the parent model. If the Agent tool rejects the adjusted slug, do not try another adjusted slug. Use the role'"'"'s line or default and say so.",
+   "**Match the model to the job.** Before each spawn, start from the role'"'"'s line or default. The `Agent` tool takes only a model, and reasoning effort follows the session (the `/setup-pstack` budget), so match the job by tier. Move a single-model role up one tier, such as `sonnet` to `opus`, only for the hardest or subtlest work, and keep routine work on the role'"'"'s model. Keep panel entries as configured, so a diverse panel stays diverse. Verification is the exception and stays on the `swarm workers` model (`haiku` by default). A role on `auto` or `inherit-parent` stays on the parent model. If the Agent tool rejects a model, use the role'"'"'s line or default and say so."],
+  ["Pick each subagent'"'"'s reasoning level and fast or standard speed for the job",
+   "Pick each subagent'"'"'s model tier for the job"],
+  ["Spawn `Task` with `subagent_type: \"pstack:comment-sicko\"`.",
+   "Spawn Comment Sicko with `Agent` (the subagent-launching tool) and `subagent_type: \"pstack:comment-sicko\"`."],
+  ["Reviewers return findings in the `Task` response body.",
+   "Reviewers return findings in the `Agent` response body."],
+  ["cloud-agent URL",
+   "cloud session URL"],
 );
 for my $r (@rules) { my ($from, $to) = @$r; s/\Q$from\E/$to/g; }
 s{re-read this playbook from trunk with `git show origin/main:pstack/([^`]+)`}{re-read this playbook from the installed pstack plugin (`cat \${CLAUDE_PLUGIN_ROOT}/$1`; the plugin install is the canonical copy, never a copy inside a work worktree)}g;
 s{`git show origin/main:pstack/([^`]+)`}{`cat \${CLAUDE_PLUGIN_ROOT}/$1`}g;
 '
 
-leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|cloud_base_branch' skills agents docs || true)
+leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|cloud_base_branch|`Task`|fast or standard speed|/visualize|Custom Mode' skills agents docs || true)
 if [ -n "$leftovers" ]; then
   printf 'Cursor-specific text the rules did not port:\n%s\n' "$leftovers" >&2
   exit 1
