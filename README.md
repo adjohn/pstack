@@ -47,6 +47,7 @@ the port tracks upstream as a vendor branch so git carries the Claude Code chang
 3. run `scripts/port-from-cursor.sh`. it rewrites the Cursor plumbing above to Claude Code plumbing, then exits nonzero and lists any Cursor-specific text it left behind. add a rule for each line, or hand-fix it.
 4. hand-check `README.md`, `.claude-plugin/plugin.json`, `plugin.json`, and `skills/setup-pstack/SKILL.md`, which the port rewrote wholesale. bump both manifest versions to upstream's.
 5. land it with a merge commit, never a squash, so `main` keeps the vendor lineage the next sync merges against.
+6. to release, add `release-notes/v<version>.md` to `main`. the release workflow tags that commit and creates the GitHub release from the file.
 
 ## install
 
