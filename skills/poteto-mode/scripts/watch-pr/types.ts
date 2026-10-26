@@ -52,6 +52,7 @@ export interface PullRequestFacts {
 }
 export interface OpenPullRequest {
   readonly number: PrNumber;
+  readonly isCrossRepository: boolean;
   readonly headRefName: string;
   readonly baseRefName: string;
 }
@@ -382,6 +383,15 @@ export interface RollupPage {
   readonly checks: readonly Check[];
   readonly endCursor: string | null;
 }
+export interface RawReviewThread {
+  readonly id: string;
+  readonly firstComment: ReviewComment | null;
+  readonly resolved: boolean;
+}
+export interface ReviewThreadPage {
+  readonly threads: readonly RawReviewThread[];
+  readonly endCursor: string | null;
+}
 export interface GitHubReader {
   originRepo(): Promise<Repository | null>;
   currentPr(pr: PrNumber | null): Promise<PrContext>;
@@ -392,7 +402,10 @@ export interface GitHubReader {
     context: PrContext,
     after: string | null
   ): Promise<RollupPage>;
-  reviewThreads(context: PrContext): Promise<readonly ReviewThread[]>;
+  reviewThreadPage(
+    context: PrContext,
+    after: string | null
+  ): Promise<ReviewThreadPage>;
   commitRollups(context: PrContext): Promise<readonly CommitRollup[]>;
 }
 export interface PollingOptions {
