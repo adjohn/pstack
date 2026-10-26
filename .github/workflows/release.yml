@@ -1,8 +1,12 @@
 name: release
 
+# A new release-notes/v<version>.md on main creates tag v<version> on that
+# commit and a GitHub release whose body is the file.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: ["release-notes/v*.md"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,13 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Create the release from the annotated tag's message
+      - name: Create a release for each notes file without one
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
         run: |
-          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
-          git tag -l --format='%(contents:body)' "$TAG" > notes.md
-          gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag
+          for f in release-notes/v*.md; do
+            tag=$(basename "$f" .md)
+            gh release view "$tag" >/dev/null 2>&1 && continue
+            gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --notes-file "$f"
+          done
