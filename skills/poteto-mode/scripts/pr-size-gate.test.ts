@@ -129,7 +129,7 @@ describe("pr-size-gate", () => {
 	});
 
 	test("shell gate denies a PreToolUse open when node is missing from PATH, unless overridden", () => {
-		const bins = execFileSync("sh", ["-c", "command -v sh cat grep printf dirname"], { encoding: "utf8" }).trim().split("\n");
+		const bins = execFileSync("sh", ["-c", "for b in sh cat grep dirname; do command -v \"$b\"; done"], { encoding: "utf8" }).trim().split("\n");
 		const dir = mkdtempSync(path.join(tmpdir(), "pr-size-nopath-"));
 		for (const bin of bins) symlinkSync(bin, path.join(dir, path.basename(bin)));
 		const runWithout = (input: object) => execFileSync("sh", [gate], { input: JSON.stringify(input), encoding: "utf8", env: { PATH: dir } });

@@ -1,0 +1,24 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create the release from the annotated tag's message
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          git tag -l --format='%(contents:body)' "$TAG" > notes.md
+          gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag
