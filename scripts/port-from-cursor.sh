@@ -246,6 +246,8 @@ my @rules = (
   ["Chain rebases run in cloud.", "Chain rebases run in worktree-isolated subagents."],
   ["Verbatim paste is for cloud spawns and every resume.", "Verbatim paste is for worktree spawns and every resume."],
   ["its spawn budget with the cloud default and the local exception list", "its spawn budget with the worktree default and the main-checkout exception list"],
+  ["node \${CLAUDE_PLUGIN_ROOT}/skills/", "node <pstack>/skills/"],
+  ["`cat \${CLAUDE_PLUGIN_ROOT}/", "`cat <pstack>/"],
   ["pstack has no planning skill. Cursor'"'"'s Plan Mode works alongside it.",
    "pstack has no planning skill. Claude Code'"'"'s plan mode works alongside it."],
   ["| It was started with Enter. Start it as a Custom Mode, or start each task with `/poteto-mode`. |",
