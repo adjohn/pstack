@@ -42,7 +42,7 @@ my @rules = (
   ["~/.cursor/projects/*/", "~/.claude/projects/*/"],
   [".cursor/worktrees/myrepo/x", ".claude/worktrees/x"],
   [".cursor/skills/", ".claude/skills/"],
-  ["node pstack/skills/poteto-mode/scripts/check-plan.mjs", "node \${CLAUDE_PLUGIN_ROOT}/skills/poteto-mode/scripts/check-plan.mjs"],
+  ["node pstack/skills/poteto-mode/scripts/check-plan.mjs", "node <pstack>/skills/poteto-mode/scripts/check-plan.mjs"],
   ["The system prompt names the active workspace'"'"'s `agent-transcripts/` directory. Use that path.",
    "Transcripts live at `~/.claude/projects/<slug>/`, one `.jsonl` per session with one JSON message per line, where $slug. Derive the directory from the current working directory."],
   ["under the active workspace'"'"'s `agent-transcripts/` directory (the system prompt names the path. ",
@@ -149,7 +149,7 @@ my @rules = (
   ["claude-opus-5-5-xhigh", "opus"],
   ["reasoning level and fast or standard speed", "reasoning level (the Agent `effort`)"],
   ["**Match the model to the job.** Before each spawn, start from the role'"'"'s line or default and pick the reasoning level and speed the job needs. The `/setup-pstack` budget sets each role'"'"'s starting level, xhigh by default. Raise it one step, up to max, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Use fast mode only when the job is urgent, meaning CI or trunk is red or a person is blocked on the result right now. Otherwise use standard speed, the same slug without `-fast`. Verification is the exception and stays on the `swarm workers` model and speed (`haiku` by default). Change only the effort level and whether the slug is fast, and keep the family the role names, so a diverse panel stays diverse. If the family has no slug at that level and speed, use its nearest slug. A role on `auto` or `inherit-parent` stays on the parent model. If the Agent tool rejects the adjusted slug, do not try another adjusted slug. Use the role'"'"'s line or default and say so.",
-   "**Match the model to the job.** Before each spawn, start from the role'"'"'s line or default and pick the reasoning level the job needs, passed as the Agent `effort` (`low`, `medium`, `high`, `xhigh`, `max`). Without `effort`, a subagent runs at the session'"'"'s level, which the `/setup-pstack` budget sets. Raise it one step, up to `max`, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Verification is the exception and stays on the `swarm workers` model at the session'"'"'s level (`haiku` by default). Change only the effort, and keep the tier the role names, so a diverse panel stays diverse. A role on `auto` or `inherit-parent` stays on the parent model. If the Agent tool rejects the effort, spawn once more without `effort` and say so."],
+   "**Match the model to the job.** Before each spawn, start from the role'"'"'s line or default and pick the reasoning level the job needs, passed as the Agent `effort` (`low`, `medium`, `high`, `xhigh`, `max`). Count steps from the session'"'"'s `effortLevel`, which the `/setup-pstack` budget sets, or from `high` when it is unset. Raise it one step, up to `max`, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Verification is the exception: it stays on the `swarm workers` model (`haiku` by default) and omits `effort`, so it runs at the session'"'"'s level. Change only the effort, and keep the tier the role names, so a diverse panel stays diverse. A role on `auto` or `inherit-parent` stays on the parent model. If the Agent tool rejects the effort, spawn once more without `effort` and say so."],
 
   # 0.15.32: readonly and MCP wording
   ["`subagent_type: general-purpose` and `readonly: true`.", "`subagent_type: general-purpose`, read-only by instruction: the prompt forbids file writes and mutating commands."],
@@ -180,8 +180,6 @@ my @rules = (
   ["Re-read the execution playbook from trunk.", "Re-read the execution playbook from the installed pstack plugin."],
   ["reviewers on different model families", "reviewers on different model tiers"],
   ["through its verification skill (such as `control-ui` or `control-cli` from `cursor-team-kit`)", "through its verification skill (`verify-<app>`, created by `/create-verification-skill`)"],
-  ["It doesn'"'"'t load on its own, so type `/typescript-best-practices` when a task touches `.ts` or `.tsx` files.",
-   "Its `paths` frontmatter loads it whenever the agent reads or edits a `.ts` or `.tsx` file, so you rarely type `/typescript-best-practices` yourself."],
 
   # fork features: the PR size budget (references/pr-budget.md, hooks/hooks.json)
   ["**Size and stacks.** Prefer five narrow PRs to one large PR.",
@@ -230,6 +228,24 @@ my @rules = (
    "There is one flat `<session-uuid>.jsonl` per session, and its subagents write under `<session-uuid>/subagents/`. For each candidate, read the first JSONL lines. Take the file whose earliest user message contains the conversation'"'"'s opening user prompt."],
   ["a chart or diagram from `/visualize`,", "a chart or diagram you render,"],
   ["and a `/visualize` chart for numbers.", "and a rendered chart (an SVG or image you generate from the data) for numbers."],
+  ["Spawn one readonly judge subagent", "Spawn one judge subagent, read-only by instruction,"],
+  ["each a Claude Code cloud agent,", "each a background subagent with `isolation: \"worktree\"`,"],
+  ["Each owner is a Claude Code cloud agent that", "Each owner is a background subagent with `isolation: \"worktree\"` that"],
+  ["Always cloud unless the task needs this machine:", "Always a background subagent with `isolation: \"worktree\"` unless the task needs the main checkout:"],
+  ["| Run parallel checks over slices, or race workers, as cloud agents |", "| Run parallel checks over slices, or race workers, as parallel subagents |"],
+  ["or run them as cloud agents, which each get their own machine.", "or spawn them with `isolation: \"worktree\"`, which gives each one its own worktree."],
+  ["Run them as cloud agents, or say", "Run them as subagents with `isolation: \"worktree\"`, or say"],
+  ["1. Install with `/add-plugin pstack` in chat, or from Customize in the sidebar.", "1. Install with `claude plugin marketplace add adjohn/pstack`, then `claude plugin install pstack\@pstack`."],
+  ["maps a model to each role, and writes a rule. The rule applies to new chats.", "maps a model to each role, and writes `~/.claude/pstack-models.md`. The file applies to new sessions."],
+  ["When the model rule is missing and it matters,", "When `~/.claude/pstack-models.md` is missing and it matters,"],
+  ["Cloud agents cannot read the local store, so their briefs inline what they need or point at repo paths.", "Worktree agents run in their own checkout, so their briefs inline what they need or give absolute paths to the store and repo files."],
+  [", the cloud agent'"'"'s status in the Claude Code cloud dashboard (claude.ai/code).", ", and the agent'"'"'s worktree (`git -C <worktree> log` and `git -C <worktree> status`)."],
+  ["an isolated worktree or cloud agent,", "an isolated worktree or cloud session,"],
+  ["local agents are dead, cloud work is not.", "running subagents are dead, but their worktrees, branches, and pushed PRs survive."],
+  ["reattach cloud work by PR and branch", "reattach the work by PR and branch"],
+  ["Chain rebases run in cloud.", "Chain rebases run in worktree-isolated subagents."],
+  ["Verbatim paste is for cloud spawns and every resume.", "Verbatim paste is for worktree spawns and every resume."],
+  ["its spawn budget with the cloud default and the local exception list", "its spawn budget with the worktree default and the main-checkout exception list"],
   ["pstack has no planning skill. Cursor'"'"'s Plan Mode works alongside it.",
    "pstack has no planning skill. Claude Code'"'"'s plan mode works alongside it."],
   ["| It was started with Enter. Start it as a Custom Mode, or start each task with `/poteto-mode`. |",
@@ -240,13 +256,15 @@ my @rules = (
    "which saves tokens when the chat runs on a cheaper model."],
 );
 for my $r (@rules) { my ($from, $to) = @$r; s/\Q$from\E/$to/g; }
-s{re-read this playbook from trunk with `git show origin/main:pstack/([^`]+)`}{re-read this playbook from the installed pstack plugin (`cat \${CLAUDE_PLUGIN_ROOT}/$1`; the plugin install is the canonical copy, never a copy inside a work worktree)}g;
-s{`git show origin/main:pstack/([^`]+)`}{`cat \${CLAUDE_PLUGIN_ROOT}/$1`}g;
+s{re-read this playbook from trunk with `git show origin/main:pstack/([^`]+)`}{re-read this playbook from the installed pstack plugin (`cat <pstack>/$1`; the plugin install is the canonical copy, never a copy inside a work worktree)}g;
+s{`git show origin/main:pstack/([^`]+)`}{`cat <pstack>/$1`}g;
+s{(`node <pstack>/skills/poteto-mode/scripts/check-plan.mjs <plan.md>`)(?! \(`<pstack>`)}{$1 (`<pstack>` is the pstack plugin root, two directories above the poteto-mode `SKILL.md` you loaded)}g;
+s{(Bundled skills live at `../<name>/SKILL.md` from this file, so put this file'"'"'s absolute path in every `poteto-agent` prompt\.)(?! The `Skill` tool)}{$1 The `Skill` tool refuses most pstack skills, so to run one, Read its `SKILL.md` there and follow it.}g;
 s{## Build a bot UI with `/make-bot-ui`\n\n[^\n]*\n\n}{}g;
 s{(- Nontrivial multi-step → write the throughput checkpoint \(Feature step 3\)\.\n)(?!- Scoping a delegate)}{$1- Scoping a delegate'"'"'s brief, a plan'"'"'s PR list, or a stack → the PR budget in `references/pr-budget.md`. Over budget means split at scoping time, never after the diff exists. The plugin hook denies an over-budget `gh pr create` or `gt submit`.\n}g;
 '
 
-leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|cloud_base_branch|\.cursor/|cursor-plugin|agent-transcripts|readonly: (true|false)|is_background|`create-skill`|`Task` (with|call)|pstack@cursor-plugins|cursor\.com/|make-bot-ui|Custom Mode|/visualize|/in-cloud' skills agents docs || true)
+leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|cloud_base_branch|\.cursor/|cursor-plugin|agent-transcripts|readonly: (true|false)|is_background|`create-skill`|`Task` (with|call)|pstack@cursor-plugins|cursor\.com/|make-bot-ui|Custom Mode|/visualize|/in-cloud|CLAUDE_PLUGIN_ROOT|/add-plugin|Customize in the sidebar|Always cloud|cloud work|run in cloud|cloud spawns|cloud default|[Cc]loud agents?\b|readonly judge|model rule\b|writes a rule' skills agents docs || true)
 if [ -n "$leftovers" ]; then
   printf 'Cursor-specific text the rules did not port:\n%s\n' "$leftovers" >&2
   exit 1

@@ -8,7 +8,7 @@ color: yellow
 
 # Poteto mode
 
-Bundled skills live at `../<name>/SKILL.md` from this file, so put this file's absolute path in every `poteto-agent` prompt.
+Bundled skills live at `../<name>/SKILL.md` from this file, so put this file's absolute path in every `poteto-agent` prompt. The `Skill` tool refuses most pstack skills, so to run one, Read its `SKILL.md` there and follow it.
 
 ## Non-negotiables
 
@@ -95,7 +95,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 **Defaults for every `Agent` call.** `run_in_background: true`, file pointers not inlined context, explicit model per role (configurable via `/setup-pstack`. Defaults `haiku` for code, `opus` for prose and judgment). Code delegates tier by difficulty. The hardest changes (cross-cutting design, gnarly concurrency, subtle algorithms) go to your strongest judgment model (`opus`), whether the task needs judgment on vague intent or is a precisely specified sequence of steps to execute to the letter. Trivial mechanical edits go to your fast code model. Per-role lines in `~/.claude/pstack-models.md` (created by `/setup-pstack`) override these defaults and the model choices in the routed skills (`how`, `why`, `arena`, `swarm`, `architect`, `interrogate`, `reflect`). A role with no line keeps its default, and a role line of `inherit-parent` or `auto` runs that role on the parent chat model (omit the Agent `model`). Each code playbook's configured model comes from its line (`feature, refactoring`, `bug-fix`, `perf-issue`, or `hillclimb`), and the hardest changes read `hardest tasks`. Prose and judgment read `judgment and prose`.
 
-**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level the job needs, passed as the Agent `effort` (`low`, `medium`, `high`, `xhigh`, `max`). Without `effort`, a subagent runs at the session's level, which the `/setup-pstack` budget sets. Raise it one step, up to `max`, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Verification is the exception and stays on the `swarm workers` model at the session's level (`haiku` by default). Change only the effort, and keep the tier the role names, so a diverse panel stays diverse. A role on `auto` or `inherit-parent` stays on the parent model. If the Agent tool rejects the effort, spawn once more without `effort` and say so.
+**Match the model to the job.** Before each spawn, start from the role's line or default and pick the reasoning level the job needs, passed as the Agent `effort` (`low`, `medium`, `high`, `xhigh`, `max`). Count steps from the session's `effortLevel`, which the `/setup-pstack` budget sets, or from `high` when it is unset. Raise it one step, up to `max`, for the hardest or subtlest work. Lower it one step for judgment and two or more steps for routine work. Verification is the exception: it stays on the `swarm workers` model (`haiku` by default) and omits `effort`, so it runs at the session's level. Change only the effort, and keep the tier the role names, so a diverse panel stays diverse. A role on `auto` or `inherit-parent` stays on the parent model. If the Agent tool rejects the effort, spawn once more without `effort` and say so.
 
 You own every subagent's work. Review the diff and write your own summary, don't pass through what it said. A second opinion is the same prompt against a different model. Agreement is high-signal.
 

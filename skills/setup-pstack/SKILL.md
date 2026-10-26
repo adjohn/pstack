@@ -26,7 +26,7 @@ The default role-to-model mapping is the file shape shown in step 5 below. If `~
 - `medium (high reasoning)`
 - `small (medium reasoning)`
 
-**(b) Apply it.** Claude Code model tiers carry no effort token, so the budget is one session-wide effort level, and subagents run at the session's level, so it covers every role. `large`, `medium`, and `small` set `effortLevel` in `~/.claude/settings.json` to `xhigh`, `high`, or `medium`. Read the JSON, set that one key, write it back, and leave every other key as it was. `unlimited` removes the key, so each model runs at its own default. `max` cannot be persisted, so on `unlimited` tell the user that `/effort max` or `CLAUDE_CODE_EFFORT_LEVEL=max` reaches it per session. A saved per-model level under `modelSettings` outranks `effortLevel`, so name any such entry you find and ask before touching it. Role models do not change with the budget. Build the working table from the skill defaults, and on a re-run keep any role you changed by tier, list, or alias (`inherit-parent`, `auto`).
+**(b) Apply it.** Claude Code model tiers carry no effort token, so the budget is one session-wide effort level, and it is every role's starting level: poteto-mode steps a spawn's `effort` up or down from it for the job. `large`, `medium`, and `small` set `effortLevel` in `~/.claude/settings.json` to `xhigh`, `high`, or `medium`. Read the JSON, set that one key, write it back, and leave every other key as it was. `unlimited` removes the key, so each model runs at its own default. `max` cannot be persisted, so on `unlimited` tell the user that `/effort max` or `CLAUDE_CODE_EFFORT_LEVEL=max` reaches it per session. A saved per-model level under `modelSettings` outranks `effortLevel`, so name any such entry you find and ask before touching it. Role models do not change with the budget. Build the working table from the skill defaults, and on a re-run keep any role you changed by tier, list, or alias (`inherit-parent`, `auto`).
 
 **(c) Show the roles and confirm.** Show every role with its model, marking any real slug not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how users on the default model setting stay on it) as the options. Prefer AskUserQuestion over free text. For panel roles (arena runners, architect runners, interrogate reviewers) the value is a list, and one subagent runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena selects one value from it whose model tier differs from the parent's when possible. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
 
@@ -41,7 +41,7 @@ Write `~/.claude/pstack-models.md` with a `# budget` line with the chosen label 
 ```
 # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
 # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit the Agent `model`). Alias entries in a panel list still count toward its fan-out.
-# budget: unlimited (model default)
+# budget: unlimited (model default, max per session)
 feature, refactoring: haiku
 bug-fix: haiku
 perf-issue: haiku

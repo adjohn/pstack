@@ -40,6 +40,8 @@ pstack was written by [Lauren Tan](https://x.com/poteto) as a Cursor IDE plugin.
 
 the port tracks upstream as a vendor branch so git carries the Claude Code changes forward. to pick up a new upstream version:
 
+`scripts/sync-upstream.sh` runs steps 1 to 3 and the tests, and leaves the merge staged for review. it exits 3 when upstream has nothing new, and 1 when something needs a person. by hand:
+
 1. check out `upstream-vendor` (its commits are pure upstream snapshots), copy upstream's `pstack/` directory over it, commit.
 2. check out `main` and merge `upstream-vendor`. resolve each conflict region to upstream's side, except in the hand-maintained files of step 4 and in fork-only code (`skills/poteto-mode/scripts/worktree-audit.sh`, the `test` script in `skills/poteto-mode/scripts/package.json`), which keep `main`'s side. delete what the port does not ship: `.cursor-plugin/`, `assets/`, `skills/make-bot-ui/`, and `docs/harness/`.
 3. run `scripts/port-from-cursor.sh`. it rewrites the Cursor plumbing above to Claude Code plumbing, then exits nonzero and lists any Cursor-specific text it left behind. add a rule for each line, or hand-fix it.

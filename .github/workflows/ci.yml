@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Port leaves no Cursor-specific text and is idempotent
+        run: |
+          bash scripts/port-from-cursor.sh
+          git diff --exit-code
+      - name: poteto-mode tools
+        working-directory: skills/poteto-mode/scripts
+        run: |
+          bun install --frozen-lockfile
+          bun run test
+          bun run typecheck
+      - name: statechart
+        run: node --test skills/statechart/scripts/test/statechart.test.mjs
