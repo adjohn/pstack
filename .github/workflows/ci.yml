@@ -25,4 +25,7 @@ jobs:
           bun run test
           bun run typecheck
       - name: statechart
-        run: node --test skills/statechart/scripts/test/statechart.test.mjs
+        working-directory: skills/statechart/scripts
+        run: |
+          npm install --no-package-lock --no-audit --no-fund
+          npm test

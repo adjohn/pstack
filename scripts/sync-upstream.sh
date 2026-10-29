@@ -91,7 +91,8 @@ for f in "${hand_maintained[@]}"; do
 done
 
 (cd skills/poteto-mode/scripts && bun install --frozen-lockfile >/dev/null && bun run test && bun run typecheck) || status=1
-(cd skills/statechart/scripts && node --test test/statechart.test.mjs) >/dev/null || { echo "statechart tests failed" >&2; status=1; }
+# The launcher's relative-symlink test misresolves under macOS's symlinked /var tmpdir.
+(cd skills/statechart/scripts && npm install --no-package-lock --no-audit --no-fund && TMPDIR="$(cd "${TMPDIR:-/tmp}" && pwd -P)" npm test) >/dev/null || { echo "statechart tests failed" >&2; status=1; }
 
 echo "branch $branch: merge of pstack $version staged, not committed; exit $status"
 echo "after review: commit, then push both upstream-vendor and $branch"
