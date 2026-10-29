@@ -101,6 +101,11 @@ my @rules = (
   ["`control-ui` or `control-cli` runtime verification (from `cursor-team-kit`)", "runtime verification via $verify"],
   ["(`control-ui` or `control-cli` from `cursor-team-kit` as the change demands)", "(the project'"'"'s verification skill, `verify-<app>` created by `/create-verification-skill`, as the change demands)"],
   ["(`control-cli` or `control-ui` from `cursor-team-kit` as the change demands)", "(the project'"'"'s verification skill, `verify-<app>` created by `/create-verification-skill`, as the change demands)"],
+  ["Run workers on a new cloud VM (`environment: \"cloud\"`) unless the work needs this machine: a `control-ui` or `control-cli` runtime check (from `cursor-team-kit`), local transcripts,",
+   "Run workers as background subagents with `isolation: \"worktree\"` unless the work needs the main checkout: a runtime check via $verify, local transcripts under `~/.claude/projects/`,"],
+  ["a control-skill check,", "a check with $verify,"],
+  ["Spawn workers with `Task`. Keep the program'"'"'s state in the Project tracker (`notes.md`) and the Project store.",
+   "Spawn workers with the Agent tool. Keep the program'"'"'s state in a durable store at `~/.claude/orchestrate/<project-slug>/`, outside the repo, with `notes.md` as its tracker."],
   ["via the control skill (Non-negotiables)", "via the project'"'"'s verification skill (`verify-<app>`, created by `/create-verification-skill`; Non-negotiables)"],
   ["the matching control skill", $verify],
   ["the relevant control skill", $verify],
@@ -256,6 +261,22 @@ my @rules = (
    "The file from `/setup-pstack` applies to new chats."],
   ["which saves tokens when the chat runs on Auto or a cheaper model.",
    "which saves tokens when the chat runs on a cheaper model."],
+
+  # 0.15.36: these match text the rules above already rewrote. Every model is Claude, so the
+  # cross-family judge and seat fallbacks become cross-tier.
+  ["agent mode (readonly strips MCP), ", ""],
+  ["A slug counts as rejected once a Task error says", "A slug counts as rejected once an Agent error says"],
+  ["the closest valid slug of the role'"'"'s family", "the closest valid slug of the role'"'"'s tier"],
+  ["If the Agent tool rejects a configured entry, run that seat on its family'"'"'s default and say so. Families go by prefix: `claude-*`, and `grok-*` with `cursor-grok-*` and `composer-*`. A refused `composer-*` entry runs on `haiku`. If the family has no default, or the Agent tool rejects that default, use the closest valid slug of the same family from its error message, or drop the seat and say so when there is none.",
+   "If the Agent tool rejects a seat'"'"'s model, configured or default, run that seat on `opus` and say so. If it rejects `opus` too, drop the seat and say so."],
+  ["Assume the VM dies. Soon after starting, push and start a decision trail in the root agent'"'"'s store (path in the system prompt)",
+   "Assume your session dies. Soon after starting, push and start a decision trail in the root agent'"'"'s store, `~/.claude/autopilot/<project-slug>/` (the root creates it and puts its absolute path in each owner'"'"'s brief),"],
+  ["Spawn one judge subagent, read-only by instruction,. The judge is never from the parent'"'"'s family, as Phase A step 3 defines families. Try only the entries from another family, in pool order.",
+   "Spawn one judge subagent, read-only by instruction. The judge never runs on the parent'"'"'s tier. Try only the entries on another tier, in pool order."],
+  ["With the default pool, a Claude parent gets `haiku`. A parent from any other family gets `opus` first. If the Agent tool rejects an entry, use a valid slug of the same model at the closest level or speed from the error message, or move to the next entry when there is none. If no entry from another family runs, try the default pool'"'"'s entries from another family the same way.",
+   "With the default pool, an Opus parent gets `haiku`, and any other parent gets `opus`. If the Agent tool rejects an entry, move to the next one. If no entry on another tier runs, try the default pool'"'"'s entries on another tier the same way."],
+  ["try the pool'"'"'s real slugs in pool order and say that the family check did not run.", "try the pool'"'"'s entries in pool order and say that the tier check did not run."],
+  ["When no model from another family can run", "When no model on another tier can run"],
 );
 for my $r (@rules) { my ($from, $to) = @$r; s/\Q$from\E/$to/g; }
 s{re-read this playbook from trunk with `git show origin/main:pstack/([^`]+)`}{re-read this playbook from the installed pstack plugin (`cat <pstack>/$1`; the plugin install is the canonical copy, never a copy inside a work worktree)}g;
@@ -266,7 +287,7 @@ s{## Build a bot UI with `/make-bot-ui`\n\n[^\n]*\n\n}{}g;
 s{(- Nontrivial multi-step → write the throughput checkpoint \(Feature step 3\)\.\n)(?!- Scoping a delegate)}{$1- Scoping a delegate'"'"'s brief, a plan'"'"'s PR list, or a stack → the PR budget in `references/pr-budget.md`. Over budget means split at scoping time, never after the diff exists. The plugin hook denies an over-budget `gh pr create` or `gt submit`.\n}g;
 '
 
-leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|cloud_base_branch|\.cursor/|cursor-plugin|agent-transcripts|readonly: (true|false)|is_background|`create-skill`|`Task` (with|call)|pstack@cursor-plugins|cursor\.com/|make-bot-ui|Custom Mode|/visualize|/in-cloud|CLAUDE_PLUGIN_ROOT|/add-plugin|Customize in the sidebar|Always cloud|cloud work|run in cloud|cloud spawns|cloud default|[Cc]loud agents?\b|readonly judge|model rule\b|writes a rule' skills agents docs || true)
+leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|`Task`|control-skill|Project (tracker|store)|cloud VM|(parent|role).s family|another family|same family|its family|Families go by|path in the system prompt|VM dies|composer-|cursor-grok|readonly strips|Task error|cloud_base_branch|\.cursor/|cursor-plugin|agent-transcripts|readonly: (true|false)|is_background|`create-skill`|pstack@cursor-plugins|cursor\.com/|make-bot-ui|Custom Mode|/visualize|/in-cloud|CLAUDE_PLUGIN_ROOT|/add-plugin|Customize in the sidebar|Always cloud|cloud work|run in cloud|cloud spawns|cloud default|[Cc]loud agents?\b|readonly judge|model rule\b|writes a rule' skills agents docs || true)
 if [ -n "$leftovers" ]; then
   printf 'Cursor-specific text the rules did not port:\n%s\n' "$leftovers" >&2
   exit 1
