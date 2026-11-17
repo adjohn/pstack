@@ -42,7 +42,6 @@ my @rules = (
   ["~/.cursor/projects/*/", "~/.claude/projects/*/"],
   [".cursor/worktrees/myrepo/x", ".claude/worktrees/x"],
   [".cursor/skills/", ".claude/skills/"],
-  ["node pstack/skills/poteto-mode/scripts/check-plan.mjs", "node <pstack>/skills/poteto-mode/scripts/check-plan.mjs"],
   ["The system prompt names the active workspace'"'"'s `agent-transcripts/` directory. Use that path.",
    "Transcripts live at `~/.claude/projects/<slug>/`, one `.jsonl` per session with one JSON message per line, where $slug. Derive the directory from the current working directory."],
   ["under the active workspace'"'"'s `agent-transcripts/` directory (the system prompt names the path. ",
@@ -54,8 +53,6 @@ my @rules = (
   ["local transcripts under `agent-transcripts/`", "local transcripts under `~/.claude/projects/`"],
   ["`~/Library/Application Support/Cursor` (`state.vscdb.backup`, and `snapshots/roots/<root>` where a `<root>` named for a folder you opened as a workspace balloons)",
    "`~/.claude/projects` (a `<slug>` directory named for a workspace you have since deleted balloons with old transcripts)"],
-  ["Create `orchestrate/<project-slug>/` in the current agent'"'"'s store (path in the system prompt).",
-   "Create the store at `~/.claude/orchestrate/<project-slug>/`, a durable directory outside the repo, and point `orch` at it (`--store` or `ORCH_STORE`)."],
 
   # tool surface: AskQuestion -> AskUserQuestion, Task -> Agent, readonly flag -> prompt instruction
   ["AskQuestion", "AskUserQuestion"],
@@ -104,8 +101,6 @@ my @rules = (
   ["Run workers on a new cloud VM (`environment: \"cloud\"`) unless the work needs this machine: a `control-ui` or `control-cli` runtime check (from `cursor-team-kit`), local transcripts,",
    "Run workers as background subagents with `isolation: \"worktree\"` unless the work needs the main checkout: a runtime check via $verify, local transcripts under `~/.claude/projects/`,"],
   ["a control-skill check,", "a check with $verify,"],
-  ["Spawn workers with `Task`. Keep the program'"'"'s state in the Project tracker (`notes.md`) and the Project store.",
-   "Spawn workers with the Agent tool. Keep the program'"'"'s state in a durable store at `~/.claude/orchestrate/<project-slug>/`, outside the repo, with `notes.md` as its tracker."],
   ["via the control skill (Non-negotiables)", "via the project'"'"'s verification skill (`verify-<app>`, created by `/create-verification-skill`; Non-negotiables)"],
   ["the matching control skill", $verify],
   ["the relevant control skill", $verify],
@@ -277,17 +272,53 @@ my @rules = (
    "With the default pool, an Opus parent gets `haiku`, and any other parent gets `opus`. If the Agent tool rejects an entry, move to the next one. If no entry on another tier runs, try the default pool'"'"'s entries on another tier the same way."],
   ["try the pool'"'"'s real slugs in pool order and say that the family check did not run.", "try the pool'"'"'s entries in pool order and say that the tier check did not run."],
   ["When no model from another family can run", "When no model on another tier can run"],
+
+  # 0.15.43: Opus-first routing capped at xhigh. Cursor slugs become Claude tiers with the Agent
+  # `effort`, Gemini seats become `sonnet`, the vendor check becomes a tier check, and Cursor
+  # Projects and `-fast` slugs have no Claude Code counterpart.
+  ["- Starting any agent, whether a subagent or a Project worker → the first line", "- Starting any subagent → the first line"],
+  [", and an explicit model per role, Project workers included.", ", and an explicit model per role."],
+  ["If the rule has no `# defaults: 3` line", "If the file has no `# defaults: 3` line"],
+  ["- Code, prose, and judgment: `opus-fast`.\n- Trivial mechanical edits: `claude-opus-5-5-high-fast`.\n- Diverse review and design panels: one runner each on `claude-fable-5-2-high`, `claude-opus-5-5-high-fast`, and `gemini-4-carbon-high`.",
+   "- Code, prose, and judgment: `opus`, at the session'"'"'s effort level.\n- Trivial mechanical edits: `opus`, one effort step lower.\n- Diverse review and design panels: one runner each on `fable`, `opus`, and `sonnet`, one effort step lower."],
+  ["**Match the model to the job.** Start from the role'"'"'s line or default, keep its family, and set the level the job needs. The `/setup-pstack` budget sets each role'"'"'s starting level. Panel seats keep their listed level. Raise any other role one step, up to xhigh, for the hardest or subtlest work, lower it one step for judgment, and two or more steps for routine work. No role runs above xhigh. Opus 5.5 always runs its `-fast` slug. Verification always runs on the `swarm workers` model, `claude-opus-5-5-high-fast` by default. A Gemini seat never runs above `gemini-4-carbon-high`, its top slug. If the Agent tool rejects a slug, never pass it again. Fall back to the role'"'"'s line or default, then the calling skill'"'"'s fallback, then the closest valid slug of the same family, then omit `model`. Say so.",
+   "**Match the model to the job.** Start from the role'"'"'s line or default, keep its tier, and pick the reasoning level the job needs, passed as the Agent `effort` (`low`, `medium`, `high`, `xhigh`). Count steps from the session'"'"'s `effortLevel`, which the `/setup-pstack` budget sets, or from `xhigh` when it is unset. Panel seats and swarm workers, verification included, run one step below it. Raise any other role one step, up to `xhigh`, for the hardest or subtlest work, lower it one step for judgment, and two or more steps for routine work. No role runs above `xhigh`, so never pass `max`. Verification always runs on the `swarm workers` model, `opus` by default. If the Agent tool rejects a model or an effort, never pass it again. Fall back to the role'"'"'s line or default, then the calling skill'"'"'s fallback, then the nearest Claude tier from the error, then omit `model`. Say so."],
+  ["A second opinion is the same prompt on another vendor'"'"'s model.", "A second opinion is the same prompt on another model tier."],
+  ["- Before commit → `/simplify` from the `cursor-team-kit` plugin.", "- Before commit → Claude Code'"'"'s built-in `/simplify`."],
+  ["- Shipping UI / IDE / CLI → `control-ui` or `control-cli` from `cursor-team-kit`.", "- Shipping UI / IDE / CLI → $verify."],
+  ["- PR status → the **Babysit** playbook, not Cursor'"'"'s built-in babysit skill.", "- PR status → the **Babysit** playbook."],
+  ["3. Pick the runners from the `arena runners` line in `~/.claude/pstack-models.md`, by default `claude-fable-5-2-high`, `claude-opus-5-5-high-fast`, and `gemini-4-carbon-high`. An `auto` or `inherit-parent` entry is the parent model, so omit `model` and spawn `general-purpose`. If the Agent tool rejects a slug, use the nearest valid slug of the same family or drop the seat, keep at least two runners, and say so. Families go by prefix, and the longest match wins: `claude-fable-*`, `claude-*`, and `gemini-*`, after dropping a leading `cursor-`. Any other slug'"'"'s family is its text before the first hyphen.",
+   "3. Pick the runners from the `arena runners` line in `~/.claude/pstack-models.md`, by default `fable`, `opus`, and `sonnet`. An `auto` or `inherit-parent` entry is the parent model, so omit `model` and spawn `general-purpose`. If the Agent tool rejects a model, use the nearest valid Claude tier from its error message or drop the seat, keep at least two runners, and say so."],
+  ["After all Phase B candidates complete, spawn one readonly judge from the `arena cross-judge pool` line in `~/.claude/pstack-models.md`, by default `claude-opus-5-5-high-fast`, `gemini-4-carbon-high`. The judge is never from the parent'"'"'s vendor, and Fable counts as Claude for that check, so use the first entry from another vendor. An `auto` or `inherit-parent` entry is the parent model. If you do not know the parent'"'"'s model, use the first real slug and say that the vendor check did not run. If the Agent tool rejects a slug, use the nearest valid slug of the same family, then the next such entry, or skip the judge, and say so.",
+   "After all Phase B candidates complete, spawn one judge subagent, read-only by instruction, from the `arena cross-judge pool` line in `~/.claude/pstack-models.md`, by default `opus`, `sonnet`. The judge never runs on the parent'"'"'s tier, and `fable` is a tier of its own, so use the first entry on another tier. An `auto` or `inherit-parent` entry is the parent model. If you do not know the parent'"'"'s model, use the first real entry and say that the tier check did not run. If the Agent tool rejects a model, use the next entry, or skip the judge, and say so."],
+  ["If the file or that line is missing, use `claude-opus-5-5-high-fast`.", "If the file or that line is missing, use `opus`. Workers run one effort step below the session'"'"'s level, whatever the line names."],
+  ["runs on `claude-opus-5-5-medium-fast`.", "runs on `opus` with `effort: medium`."],
+  ["with `subagent_type: general-purpose` and `readonly: true` that explores and explains in one pass.", "with `subagent_type: general-purpose` that explores and explains in one pass. Its prompt forbids file writes and mutating commands."],
+  ["Spawn one investigator subagent per source, in agent mode because readonly strips MCP access, and ask each", "Spawn one investigator subagent per source, and ask each"],
+  ["spawn Cursor subagents, some with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.", "spawn Claude Code subagents, some with per-role models, so those parts may not work there."],
+  ["spawn a subagent on another vendor'"'"'s model than the one that did the work.", "spawn a subagent on a different model tier from the one that did the work."],
+  ["`/simplify` ships in the `cursor-team-kit` plugin, not in pstack. If you don'"'"'t have it, ask for the same outcome in plain words: remove narrating comments, unsupported guards, dead compatibility paths, and unrelated edits.", "`/simplify` is a Claude Code built-in, not part of pstack."],
+  ["A read-only judge from a different model vendor scores every candidate against a rubric. When no model from another vendor can run,", "A read-only judge on a different model tier scores every candidate against a rubric. When no model on another tier can run,"],
+  ["(default `opus-fast`)", "(default `opus`)"],
+  ["\nmodel: opus-fast\n", "\nmodel: opus\n"],
+  ["The defaults are the same as the `large` budget. Code, prose, and judgment run on Opus 5.5 at `xhigh` reasoning, and the review panels and swarm workers run at `high`.",
+   "The defaults are the same as the `large` budget. Code, prose, and judgment run on `opus` at `xhigh` reasoning, and the review panels (`fable`, `opus`, `sonnet`) and swarm workers run at `high`. The budget sets `effortLevel` in `~/.claude/settings.json`, which every subagent inherits unless a spawn passes its own `effort`."],
+  ["You might be wondering what happens if you use Auto. Set a role", "Set a role"],
+  ["- Triage Bugbot skeptically:", "- Triage review bots (Bugbot, `/code-review`, or similar) skeptically:"],
+  ["Open PRs ready, through the run'"'"'s PR tool with `draft: false`. Without one, use `gh pr create` without `--draft`,", "Open PRs ready with `gh pr create` without `--draft`,"],
+  ["and the files each may touch. Then one section per PR.", "and the files each may touch. Each PR'"'"'s files fit the budget in `../references/pr-budget.md`. Then one section per PR."],
 );
 for my $r (@rules) { my ($from, $to) = @$r; s/\Q$from\E/$to/g; }
 s{re-read this playbook from trunk with `git show origin/main:pstack/([^`]+)`}{re-read this playbook from the installed pstack plugin (`cat <pstack>/$1`; the plugin install is the canonical copy, never a copy inside a work worktree)}g;
 s{`git show origin/main:pstack/([^`]+)`}{`cat <pstack>/$1`}g;
-s{(`node <pstack>/skills/poteto-mode/scripts/check-plan.mjs <plan.md>`)(?! \(`<pstack>`)}{$1 (`<pstack>` is the pstack plugin root, two directories above the poteto-mode `SKILL.md` you loaded)}g;
 s{(Bundled skills live at `../<name>/SKILL.md` from this file, so put this file'"'"'s absolute path in every `poteto-agent` prompt\.)(?! The `Skill` tool)}{$1 The `Skill` tool refuses most pstack skills, so to run one, Read its `SKILL.md` there and follow it.}g;
 s{## Build a bot UI with `/make-bot-ui`\n\n[^\n]*\n\n}{}g;
 s{(- Nontrivial multi-step → write the throughput checkpoint \(Feature step 3\)\.\n)(?!- Scoping a delegate)}{$1- Scoping a delegate'"'"'s brief, a plan'"'"'s PR list, or a stack → the PR budget in `references/pr-budget.md`. Over budget means split at scoping time, never after the diff exists. The plugin hook denies an over-budget `gh pr create` or `gt submit`.\n}g;
+s{(- Code → name the data shape first\.[^\n]*\n)(?!- Scoping a delegate)}{$1- Scoping a delegate'"'"'s brief, a plan'"'"'s PR list, or a stack → the PR budget in `references/pr-budget.md`. Over budget means split at scoping time, never after the diff exists. The plugin hook denies an over-budget `gh pr create` or `gt submit`.\n}g;
+s{(Run Claude Code'"'"'s built-in `/simplify` over the diff before commit\.)(?! Every PR fits)}{$1 Every PR fits the budget in `../references/pr-budget.md`, and the plugin hook denies an over-budget `gh pr create` or `gt submit`. Split along the seams the reference names.}g;
 '
 
-leftovers=$(grep -rnE --exclude-dir=node_modules 'environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|`Task`|control-skill|Project (tracker|store)|cloud VM|(parent|role).s family|another family|same family|its family|Families go by|path in the system prompt|VM dies|composer-|cursor-grok|readonly strips|Task error|cloud_base_branch|\.cursor/|cursor-plugin|agent-transcripts|readonly: (true|false)|is_background|`create-skill`|pstack@cursor-plugins|cursor\.com/|make-bot-ui|Custom Mode|/visualize|/in-cloud|CLAUDE_PLUGIN_ROOT|/add-plugin|Customize in the sidebar|Always cloud|cloud work|run in cloud|cloud spawns|cloud default|[Cc]loud agents?\b|readonly judge|model rule\b|writes a rule' skills agents docs || true)
+leftovers=$(grep -rnE --exclude-dir=node_modules 'opus-fast|-fast`|gemini-[0-9]|another vendor|vendor.s model|model vendor|Project workers?\b|Cursor subagents|environment: "|/deslop|\.mdc\b|AskQuestion|\bTask tool|grok-[0-9]|gpt-5|claude-[a-z]+-[0-9]|cursor-team-kit|`Task`|control-skill|Project (tracker|store)|cloud VM|(parent|role).s family|another family|same family|its family|Families go by|path in the system prompt|VM dies|composer-|cursor-grok|readonly strips|Task error|cloud_base_branch|\.cursor/|cursor-plugin|agent-transcripts|readonly: (true|false)|is_background|`create-skill`|pstack@cursor-plugins|cursor\.com/|make-bot-ui|Custom Mode|/visualize|/in-cloud|CLAUDE_PLUGIN_ROOT|/add-plugin|Customize in the sidebar|Always cloud|cloud work|run in cloud|cloud spawns|cloud default|[Cc]loud agents?\b|readonly judge|model rule\b|writes a rule' skills agents docs || true)
 if [ -n "$leftovers" ]; then
   printf 'Cursor-specific text the rules did not port:\n%s\n' "$leftovers" >&2
   exit 1

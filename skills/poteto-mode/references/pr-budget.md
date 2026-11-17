@@ -4,7 +4,7 @@ One PR fits one reviewer sitting. The budget is 20 files and 800 added lines, me
 
 **Where it bites.** Three points, earliest first. Only the first is cheap.
 
-1. Scoping. A delegate's brief, a plan's PR section, and a figure-it-out unit are each one PR. A brief that lists more files than the budget is two briefs, split before anyone writes code. `scripts/check-plan.mjs` fails a plan whose PR section lists more files than the budget.
+1. Scoping. A delegate's brief, a plan's PR section, and a figure-it-out unit are each one PR. A brief that lists more files than the budget is two briefs, split before anyone writes code.
 2. Committing. The plugin hook prints the running measure after every commit command (`git commit`, `gt create`, `gt modify`, `gt absorb`), files and added lines against the base. Watch it climb and split while the seams are fresh.
 3. Opening. The same hook denies `gh pr create` and `gt submit` when the diff is over budget. It reads `--base` from the command when present, else `gt parent`, else `origin/HEAD`. A stack submit is measured at its top branch only; the per-commit measure covers the branches below as they were built. Reaching the deny means scoping was skipped.
 
@@ -16,6 +16,6 @@ One PR fits one reviewer sitting. The budget is 20 files and 800 added lines, me
 - Tests ride with the code they prove. No tests-only PR at the top of a stack.
 - A mechanical sweep (one rename across forty files) ships as one PR only when a committed lever produced it and the reviewer can rerun the lever (the **build-the-lever** principle skill). Name the lever in the PR body.
 
-Stack the pieces with Graphite (`gt`) per **Opening a PR**. Bottom-up order is the reading order.
+Stack the pieces by base branch per **Opening a PR**. Graphite (`gt`) is optional. Bottom-up order is the reading order.
 
 **Override.** A diff that cannot split, such as a lever-produced sweep or a vendored drop, passes the gate when the create command starts with `PSTACK_PR_SIZE_OK=1`. State the reason in the PR's `## Tradeoffs` section. An override with no reason in the body is a defect a reviewer may bounce.
