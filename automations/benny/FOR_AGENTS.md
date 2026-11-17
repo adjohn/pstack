@@ -28,8 +28,8 @@ i want two claude code scheduled agents that work together in one slack issue ch
 - i want the source channel and root thread coordinates to stay immutable for the whole run.
 - i treat utility and debug bots as evidence, not delegation or fix ownership.
 - i allow subagents to help, but they cannot post to slack or receive slack credentials.
-- i want this entire pack committed under `.claude/skills/` in the target repository. its `SKILL.md` files are direct automation instructions committed as project skills, not registered plugin skills.
-- i want pstack enabled through the target repository's committed `.claude/settings.json` only for shared dependencies such as `how`, `why`, `tdd`, `unslop`, and the required principle skills.
+- i want this entire pack committed at `.cursor/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not registered plugin skills.
+- i want pstack enabled through the target repository's committed `.cursor/settings.json` only for shared dependencies such as `why`, `tdd`, `unslop`, and the required principle skills.
 - i want each live automation prompt to read its committed operational file directly. i do not want plugin cache paths, copied excerpts, or slash-skill discovery.
 - i keep user-owned configuration, feature maps, routing maps, and secrets outside the copied benny skills, for example in `.claude/benny/`, so pack refreshes cannot overwrite them.
 - i want both automations to fail closed when channel coordinates, tracker access, the control adapter, or the feature map are missing or uncertain.
@@ -77,7 +77,7 @@ i want you to merge this entry into the target repository's `.claude/settings.js
 
 preserve every unrelated setting and plugin entry.
 
-i want verification from a fresh agent rooted in the target repository. confirm that pstack's `how`, `why`, `tdd`, `unslop`, and the principle skills used by benny resolve in project scope. do not count skills loaded from the current session or a user-scoped install.
+i want verification from a fresh agent rooted in the target repository. confirm that pstack's `why`, `tdd`, `unslop`, and the principle skills used by benny resolve in project scope. do not count skills loaded from the current session or a user-scoped install.
 
 if project-scoped plugins are unavailable or any shared dependency does not resolve, stop and explain what failed. the pstack marketplace must be known to claude code in every environment that runs the automations; add it with `claude plugin marketplace add` when it is missing. do not add the copied benny skills to a plugin manifest. they are committed project skills with model invocation disabled, and the live automation prompts read the operational files directly by path.
 
