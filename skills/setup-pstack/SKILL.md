@@ -20,7 +20,9 @@ The default role-to-model mapping is the file shape shown in step 5 below. If `~
 A file without the `# defaults: 3` line comes from an older setup. That setup wrote a line for every role, so some of its values are old defaults, not choices. Before step 3, replace these values:
 
 - `haiku` in `feature, refactoring`, `bug-fix`, `perf-issue`, `hillclimb`, or `swarm workers` takes the role's step 5 default.
-- In a panel role (`arena runners`, `arena cross-judge pool`, `interrogate reviewers`), a list of exactly `opus` and `haiku`, in either order, takes the role's step 5 list.
+- `sonnet` in `bug-fix`, `perf-issue`, or `hillclimb` takes the role's step 5 default. An early port wrote it as the default, but the user may have chosen it, so name it when you replace it and offer to keep it.
+- `fable` in `judgment and prose` takes the role's step 5 default, because Fable now runs outside a panel only when the user names it for a task.
+- In a panel role (`arena runners`, `arena cross-judge pool`, `interrogate reviewers`), a list holding exactly these entries in any order takes the role's step 5 list: `opus` and `haiku`; `opus`, `sonnet`, and `haiku`; or `fable`, `sonnet`, `haiku`, and `opus`.
 - A `# budget: unlimited` line becomes `large`, because no role runs above `xhigh`.
 
 Every other value is the user's choice and stays, including `haiku` in any other role and every `inherit-parent` or `auto` value. Tell the user which values you replaced.

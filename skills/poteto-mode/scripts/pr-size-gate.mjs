@@ -120,7 +120,7 @@ export function decide(input, run = check) {
 			permissionDecisionReason: [
 				"pstack PR budget: this diff is over budget.",
 				result.report,
-				"Split it into a Graphite stack per skills/poteto-mode/references/pr-budget.md, then reopen.",
+				"Split it into a stack by base branch per skills/poteto-mode/references/pr-budget.md, then reopen.",
 				"A diff that cannot split (generated files, a lever-produced sweep) may prefix the command with PSTACK_PR_SIZE_OK=1 and must name the reason in the PR's Tradeoffs section.",
 			].join("\n"),
 		},
